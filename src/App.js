@@ -11,14 +11,16 @@ const query = {
   dataSets: {
     resource: 'dataSets',
     params: {
-      fields: 'id,name,dataSetElements(dataElement(id)),categoryCombo(categories(categoryOptions(id,name)))',
+      fields:
+        'id,name,dataSetElements(dataElement(id)),categoryCombo(id,categoryOptionCombos(id,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
       paging: 'false',
     },
   },
   dataElements: {
     resource: 'dataElements',
     params: {
-      fields: 'id,name,categoryCombo(categories(categoryOptions(id,name)))',
+      fields:
+        'id,name,categoryCombo(id,categoryOptionCombos(id,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
       filter: 'domainType:eq:AGGREGATE',
       paging: 'false',
     },

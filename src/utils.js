@@ -6,7 +6,6 @@ function getCosFromMetadata(metadata, coMaps) {
   const coMapList = cos.map(({ uid, name }) =>
     uid in coMaps ? { [uid]: coMaps[uid] } : { [uid]: { name: name, filter: '' } }
   )
-  console.log(coMapList)
   return coMapList.reduce((acc, curr) => {
     return { ...acc, ...curr }
   }, {})
@@ -26,4 +25,13 @@ export function getCosFromRow(dsUid, deUid, metadata, coMaps) {
     dsCos = getCosFromMetadata(ds, coMaps)
   }
   return { ...desCos, ...dsCos }
+}
+
+export function makeUid() {
+  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  var uid = possible.charAt(Math.floor(Math.random() * (possible.length - 10)))
+  for (var i = 0; i < 10; i++) {
+    uid += possible.charAt(Math.floor(Math.random() * possible.length))
+  }
+  return uid
 }

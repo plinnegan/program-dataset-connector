@@ -1,3 +1,5 @@
+import { makeUid } from './utils'
+
 class PiCalculationError extends Error {
   constructor(message) {
     super(message)
@@ -15,43 +17,60 @@ function getByUid(uid, metadata) {
 
 function getBaseFilter(piUid, allPis) {
   const pi = getByUid(piUid, allPis)
-  const filter = pi.filter.trim()
+  const filter = 'filter' in pi ? pi.filter.trim() : ''
   const isBracketed = filter[0] === '(' && filter[filter.length - 1] === ')'
-  return isBracketed ? filter : `(${filter})`
+  return isBracketed || filter === '' ? filter : `(${filter})`
 }
 
-function getCatFilters(metadata, coMap) {
-  return metadata.categoryCombo.categories.reduce((acc, curr) => {
-    console.log('Curr: ', curr)
-    const cos = curr.categoryOptions.map((co) => coMap[co.id])
-    console.log('cos: ', cos)
-    return { ...acc, [curr.id]: cos }
-  }, {})
-}
-
-function getFiltersByCat(dsUid, deUid, coMaps, dataSets, dataElements) {
-  const ds = getByUid(dsUid, dataSets)
-  const de = getByUid(deUid, dataElements)
-  return { ...getCatFilters(ds, coMaps), ...getCatFilters(de, coMaps) }
-}
-
-function multiplyFilters(startingFilters, newFilters) {
+function getFilters(metaItem, coMaps) {
+  const cocs = metaItem.categoryCombo.categoryOptionCombos
   const result = []
-  for (const filter of startingFilters) {
-    for (const newFilter of newFilters) {
-      result.push(`${filter} && ${newFilter}`)
+  for (const coc of cocs) {
+    let cocFilter = ''
+    let cocSuffix = ''
+    for (const co of coc.categoryOptions) {
+      if (cocFilter === '') {
+        cocFilter = `(${coMaps[co.id].filter})`
+        cocSuffix = ` (${co.name})`
+      } else {
+        cocFilter = `${cocFilter} && (${coMaps[co.id].filter})`
+        cocSuffix = `${cocSuffix} (${co.name})`
+      }
+    }
+    result.push({ cocUid: coc.id, filter: cocFilter, suffix: cocSuffix })
+  }
+  return result
+}
+
+function combineFilters(baseFilter, dsFilters, deFilters) {
+  const result = []
+  for (const dsFilterInfo of dsFilters) {
+    const { cocUid: aocUid, filter: dsFilter, suffix: dsSuffix } = dsFilterInfo
+    for (const deFilterInfo of deFilters) {
+      const { cocUid, filter: deFilter, suffix: deSuffix } = deFilterInfo
+      result.push({
+        cocUid,
+        aocUid,
+        filter: baseFilter === '' ? `${dsFilter} && ${deFilter}` : `${baseFilter} && ${dsFilter} && ${deFilter}`,
+        suffix: dsSuffix + deSuffix,
+      })
     }
   }
   return result
 }
 
-function generateFilters(piFilter, filtersByCat) {
-  let result = [piFilter]
-  for (const catUid in filtersByCat) {
-    const catFilters = filtersByCat[catUid]
-    result = multiplyFilters(result, catFilters)
+// TODO: Need to make sure Generate PIs removes previous PIs before running.
+function createPiJSON(pi, filters) {
+  const importData = []
+  for (const { cocUid, aocUid, filter, suffix } in filters) {
+    const newPi = JSON.parse(JSON.stringify(pi))
+    newPi.filter = filter
+    newPi.name = `${newPi.name}${suffix}`
+    newPi.aggregateExportCategoryOptionCombo = cocUid
+    newPi.aggregateExportAttributeOptionCombo = aocUid
+    importData.push(newPi)
   }
-  return result
+  return { programIndicators: importData }
 }
 
 export default function calculatePis(dsUid, deUid, piUid, coMaps, metadata) {
@@ -61,6 +80,12 @@ export default function calculatePis(dsUid, deUid, piUid, coMaps, metadata) {
     ...metadata.programIndicators,
   }
   const baseFilter = getBaseFilter(piUid, programIndicators)
-  const filtersByCat = getFiltersByCat(dsUid, deUid, coMaps, dataSets, dataElements)
-  const filters = generateFilters(baseFilter, filtersByCat)
+  const ds = getByUid(dsUid, dataSets)
+  const dsFilters = getFilters(ds, coMaps)
+  const de = getByUid(deUid, dataElements)
+  const deFilters = getFilters(de, coMaps, dataElements)
+  const combinedFilters = combineFilters(baseFilter, dsFilters, deFilters)
+  const pi = getByUid(piUid, programIndicators)
+  const piJson = createPiJSON(pi, combinedFilters)
+  return piJson
 }
