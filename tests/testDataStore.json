@@ -1,0 +1,57 @@
+{
+  "dePiMaps": {
+    "rowId001": {
+      "deUid": "tez3RZUxDmt",
+      "dsUid": "lyLU2wR22tC",
+      "piUid": "x7PaHGvgWY2",
+      "rowId": "rowId001",
+      "deName": "deName01",
+      "dsName": "ART monthly summary",
+      "piName": "BMI"
+    },
+    "rowId002": {
+      "deUid": "yV3GO6UdHUw",
+      "dsUid": "lyLU2wR22tC",
+      "piUid": "p2Zxg0wcPQ3",
+      "rowId": "rowId002",
+      "deName": "deName02",
+      "dsName": "ART monthly summary",
+      "piName": "BCG Doses"
+    },
+    "rowId003": {
+      "deUid": "O6DRSDXIYne",
+      "dsUid": "lyLU2wR22tC",
+      "piUid": "luLGbE2WKGP",
+      "rowId": "rowId003",
+      "deName": "deName03",
+      "dsName": "ART monthly summary",
+      "piName": "Inpatient cases"
+    }
+  },
+  "coMaps": {
+    "IG8vRsn0HNl": {
+      "name": "Age 50+",
+      "filter": "A{ageTeaUid00} >= 50"
+    },
+    "UOqJW6HPvvL": {
+      "name": "Age 15-24",
+      "filter": "A{ageTeaUid00} >= 15 && A{ageTeaUid00} < 25"
+    },
+    "WAl0OCcIYxr": {
+      "name": "Age 25-49",
+      "filter": "A{ageTeaUid00} >= 25 && A{ageTeaUid00} < 50"
+    },
+    "apsOixVZlf1": {
+      "name": "Female",
+      "filter": "A{sexTeaUid00} == 'female1'"
+    },
+    "jRbMi0aBjYn": {
+      "name": "Male",
+      "filter": "A{sexTeaUid00} == 'male'"
+    },
+    "zs2Ra6sikup": {
+      "name": "Age <15",
+      "filter": "A{ageTeaUid00} < 15"
+    }
+  }
+}
