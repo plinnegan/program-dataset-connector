@@ -11,7 +11,7 @@ const query = {
   dataSets: {
     resource: 'dataSets',
     params: {
-      fields: 'id,name,dataSetElements(dataElement(id))',
+      fields: 'id,name,dataSetElements(dataElement(id)),categoryCombo(categories(categoryOptions(id,name)))',
       paging: 'false',
     },
   },

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Modal, ModalTitle, ModalContent, ModalActions, ButtonStrip, Button } from '@dhis2/ui'
-import { getCosFromDe } from '../utils'
+import { getCosFromRow } from '../utils'
 import RowFieldSelect from './RowFieldSelect'
 import CoFilters from './CoFilters'
 
@@ -9,7 +9,7 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
   const [coMappings, setCoMappings] = useState({})
 
   useEffect(() => {
-    setCoMappings(getCosFromDe(rowData.deUid, metadata, coMaps))
+    setCoMappings(getCosFromRow(rowData.dsUid, rowData.deUid, metadata, coMaps))
   }, [rowData.deUid])
 
   return (
