@@ -6,9 +6,11 @@ export function getCosFromDe(deUid, metadata, coMaps) {
       (acc, curr) => [...acc, ...curr.categoryOptions.map((co) => ({ uid: co.id, name: co.name }))],
       []
     )
-    const coMapList = cos.map(({ uid, mame }) =>
-      uid in coMaps ? { [uid]: coMaps[uid] } : { [uid]: { name: mame, filter: '' } }
+    console.log(cos)
+    const coMapList = cos.map(({ uid, name }) =>
+      uid in coMaps ? { [uid]: coMaps[uid] } : { [uid]: { name: name, filter: '' } }
     )
+    console.log(coMapList)
     return coMapList.reduce((acc, curr) => {
       return { ...acc, ...curr }
     }, {})

@@ -40,7 +40,7 @@ const Page = ({ metadata, existingConfig }) => {
   }
 
   return (
-    <div class={classes.pageDiv}>
+    <div className={classes.pageDiv}>
       <h1>Event to Aggregate Mappings</h1>
       <p>
         This application is used to link program indicators to a data elements in a specific data set. This is used to
