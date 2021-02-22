@@ -5,6 +5,7 @@ import Row from './Row'
 import Mapping from './Mapping'
 import { config } from '../consts'
 import classes from '../App.module.css'
+import calculatePis from '../calculatePis'
 
 const mutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
@@ -39,6 +40,11 @@ const Page = ({ metadata, existingConfig }) => {
     engine.mutate(mutation, { variables: { data: { dePiMaps: newDePiMaps, coMaps: newCoMaps } } })
   }
 
+  const generatePis = (rowId) => {
+    const { dsUid, deUid, piUid } = dePiMaps[rowId]
+    calculatePis(dsUid, deUid, piUid, coMaps, metadata)
+  }
+
   return (
     <div className={classes.pageDiv}>
       <h1>Event to Aggregate Mappings</h1>
@@ -68,8 +74,16 @@ const Page = ({ metadata, existingConfig }) => {
           </TableRowHead>
         </TableHead>
         <TableBody>
-          {Object.entries(dePiMaps).map(([key, { dsName, deName, piName, rowId }]) => (
-            <Row key={key} dsName={dsName} deName={deName} piName={piName} rowId={key} handleClick={handleRowClick} />
+          {Object.entries(dePiMaps).map(([key, { dsName, deName, piName }]) => (
+            <Row
+              key={key}
+              dsName={dsName}
+              deName={deName}
+              piName={piName}
+              rowId={key}
+              handleClick={handleRowClick}
+              generatePis={generatePis}
+            />
           ))}
         </TableBody>
       </Table>
