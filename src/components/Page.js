@@ -7,10 +7,25 @@ import { config } from '../consts'
 import classes from '../App.module.css'
 import calculatePis from '../calculatePis'
 
-const mutation = {
+const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
   type: 'update',
   data: ({ data }) => data,
+}
+
+const createUpdatePisMutation = {
+  resource: `metadata`,
+  type: 'create',
+  data: ({ data }) => data,
+}
+
+const deletePisMutation = {
+  resource: `metadata`,
+  type: 'create',
+  data: ({ data }) => data,
+  params: {
+    importStrategy: 'DELETE',
+  },
 }
 
 const Page = ({ metadata, existingConfig }) => {
@@ -37,12 +52,16 @@ const Page = ({ metadata, existingConfig }) => {
     setDePiMaps(newDePiMaps)
     setCoMap(newCoMaps)
     setShowModal(false)
-    engine.mutate(mutation, { variables: { data: { dePiMaps: newDePiMaps, coMaps: newCoMaps } } })
+    engine.mutate(dataStoreMutation, { variables: { data: { dePiMaps: newDePiMaps, coMaps: newCoMaps } } })
   }
 
   const generatePis = (rowId) => {
     const { dsUid, deUid, piUid } = dePiMaps[rowId]
-    calculatePis(dsUid, deUid, piUid, coMaps, metadata)
+    const { createUpdatePis, deletePis } = calculatePis(dsUid, deUid, piUid, coMaps, metadata)
+    console.log('createUpdatePis', createUpdatePis)
+    console.log('deletePis', deletePis)
+    engine.mutate(createUpdatePisMutation, { variables: { data: createUpdatePis } })
+    engine.mutate(deletePisMutation, { variables: { data: deletePis } })
   }
 
   return (

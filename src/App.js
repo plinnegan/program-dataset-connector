@@ -29,6 +29,13 @@ const query = {
     resource: 'programIndicators',
     params: { filter: 'name:!like:(generated)', fields: ':owner', paging: 'false' },
   },
+  generatedPis: {
+    resource: 'programIndicators',
+    params: {
+      filter: 'name:like:(generated)',
+      fields: 'id,code,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
+    },
+  },
   dataStore: {
     resource: 'dataStore',
   },
