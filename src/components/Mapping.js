@@ -7,10 +7,11 @@ import CoFilters from './CoFilters'
 const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => {
   const [rowData, setRowData] = useState(rowDataIn)
   const [coMappings, setCoMappings] = useState({})
+  console.log('rowData', rowData)
 
   useEffect(() => {
     setCoMappings(getCosFromRow(rowData.dsUid, rowData.deUid, metadata, coMaps))
-  }, [rowData.deUid])
+  }, [rowData.deUid, rowData.dsUid])
 
   return (
     <Modal large>
@@ -35,7 +36,7 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
         <RowFieldSelect
           metadata={metadata.programIndicators.programIndicators}
           rowData={rowData}
-          label="Program Indicators"
+          label="Program Indicator"
           updateFields={{ uid: 'piUid', name: 'piName' }}
           onSelect={setRowData}
         />

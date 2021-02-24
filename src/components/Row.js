@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, ButtonStrip, TableRow, TableCell } from '@dhis2/ui'
 
-const Row = ({ dsName, deName, piName, rowId, handleClick, generatePis }) => {
+const Row = ({ dsName, deName, piName, rowId, handleClick, generatePis, handleDelete }) => {
   return (
     <TableRow key={rowId}>
       <TableCell key={`${rowId}-dsName`}>{dsName}</TableCell>
@@ -14,6 +14,9 @@ const Row = ({ dsName, deName, piName, rowId, handleClick, generatePis }) => {
           </Button>
           <Button primary onClick={(e) => generatePis(rowId)}>
             Generate PIs
+          </Button>
+          <Button destructive onClick={(e) => handleDelete(rowId)}>
+            Delete
           </Button>
         </ButtonStrip>
       </TableCell>

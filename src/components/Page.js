@@ -1,11 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDataEngine } from '@dhis2/app-runtime'
-import { Table, TableHead, TableRowHead, TableCellHead, TableBody } from '@dhis2/ui'
+import {
+  Table,
+  TableHead,
+  TableRowHead,
+  TableCellHead,
+  TableBody,
+  TableFoot,
+  TableRow,
+  TableCell,
+  Button,
+} from '@dhis2/ui'
 import Row from './Row'
 import Mapping from './Mapping'
 import { config } from '../consts'
 import classes from '../App.module.css'
 import calculatePis from '../calculatePis'
+import { makeUid } from '../utils'
 
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
@@ -35,6 +46,13 @@ const Page = ({ metadata, existingConfig }) => {
   const [selectedRowData, setSelectedRowData] = useState({})
   const engine = useDataEngine()
 
+  useEffect(() => {
+    const newRows = Object.values(dePiMaps).filter((dePiMap) => 'newRow' in dePiMap)
+    if (newRows.length > 0) {
+      handleRowClick(newRows[0].rowId)
+    }
+  }, [dePiMaps])
+
   const handleRowClick = (rowId) => {
     setSelectedRowData(dePiMaps[rowId])
     setShowModal(true)
@@ -45,14 +63,28 @@ const Page = ({ metadata, existingConfig }) => {
   }
 
   const handleRowUpdate = (rowData, coMappings) => {
+    delete rowData.newRow
     const newDePiMaps = Object.entries(dePiMaps).reduce((result, [id, mapInfo]) => {
       return { ...result, [id]: id === rowData.rowId ? rowData : mapInfo }
     }, {})
     const newCoMaps = { ...coMaps, ...coMappings }
+    console.log(newDePiMaps)
     setDePiMaps(newDePiMaps)
     setCoMap(newCoMaps)
     setShowModal(false)
     engine.mutate(dataStoreMutation, { variables: { data: { dePiMaps: newDePiMaps, coMaps: newCoMaps } } })
+  }
+
+  const onDelete = (rowId) => {
+    const newDePiMaps = Object.entries(dePiMaps).reduce((acc, [id, mapInfo]) => {
+      if (id === rowId) {
+        return acc
+      } else {
+        return { ...acc, [id]: mapInfo }
+      }
+    }, {})
+    setDePiMaps(newDePiMaps)
+    engine.mutate(dataStoreMutation, { variables: { data: { dePiMaps: newDePiMaps, coMaps: coMaps } } })
   }
 
   const generatePis = (rowId) => {
@@ -62,6 +94,21 @@ const Page = ({ metadata, existingConfig }) => {
     console.log('deletePis', deletePis)
     engine.mutate(createUpdatePisMutation, { variables: { data: createUpdatePis } })
     engine.mutate(deletePisMutation, { variables: { data: deletePis } })
+  }
+
+  const addRow = () => {
+    const rowId = `rowId-${makeUid()}`
+    const newRow = {
+      dsUid: '',
+      dsName: '',
+      deUid: '',
+      deName: '',
+      piUid: '',
+      piName: '',
+      rowId: rowId,
+      newRow: true,
+    }
+    setDePiMaps({ ...dePiMaps, [rowId]: newRow })
   }
 
   return (
@@ -102,9 +149,19 @@ const Page = ({ metadata, existingConfig }) => {
               rowId={key}
               handleClick={handleRowClick}
               generatePis={generatePis}
+              handleDelete={onDelete}
             />
           ))}
         </TableBody>
+        <TableFoot>
+          <TableRow>
+            <TableCell>
+              <Button primary onClick={() => addRow()}>
+                Add row
+              </Button>
+            </TableCell>
+          </TableRow>
+        </TableFoot>
       </Table>
     </div>
   )
