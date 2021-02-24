@@ -59,19 +59,37 @@ function combineFilters(baseFilter, dsFilters, deFilters) {
   return result
 }
 
-// TODO: Need to make sure Generate PIs removes previous PIs before running.
-function createPiJSON(pi, filters, existingPis) {
+function createPiJSON(pi, deUid, filters, existingPis) {
   const importData = []
   const pisToDelete = []
   const processedAocCocs = {}
   console.log('filters', filters)
-  for (const { cocUid, aocUid, filter, suffix } of filters) {
+  for (const [idx, { cocUid, aocUid, filter, suffix }] of filters.entries()) {
     const aocCoc = `${aocUid}-${cocUid}`
     processedAocCocs[aocCoc] = true
     const newPi = JSON.parse(JSON.stringify(pi))
+    if (aocCoc in existingPis) {
+      newPi.id = existingPis[aocCoc].id
+      newPi.analyticsPeriodBoundaries = existingPis[aocCoc].analyticsPeriodBoundaries
+    } else {
+      newPi.id = makeUid()
+      for (const apb of newPi.analyticsPeriodBoundaries) {
+        delete apb.id
+      }
+    }
     newPi.id = aocCoc in existingPis ? existingPis[aocCoc] : makeUid()
     newPi.filter = filter
-    newPi.code = `pi-source-${pi.id}`
+    newPi.code = ''
+    newPi.description = `pi-source-${pi.id}`
+    newPi.shortName = `${pi.shortName} (${idx})`
+    newPi.attributeValues = [
+      {
+        value: deUid,
+        attribute: {
+          id: 'b8KbU93phhz',
+        },
+      },
+    ]
     newPi.name = `${pi.name}${suffix} (generated)`
     newPi.aggregateExportCategoryOptionCombo = cocUid
     newPi.aggregateExportAttributeOptionCombo = aocUid
@@ -90,12 +108,13 @@ function createPiJSON(pi, filters, existingPis) {
 }
 
 function getExistingPis(piUid, existingGeneratedPis) {
-  const thesePis = existingGeneratedPis.filter((pi) => pi.code === `pi-source-${piUid}`)
+  const thesePis = existingGeneratedPis.filter((pi) => pi.description === `pi-source-${piUid}`)
   const result = {}
   for (const pi in thesePis) {
+    const apb = pi.analyticsPeriodBoundaries
     const cocExport = pi.aggregateExportCategoryOptionCombo
     const aocExport = pi.aggregateExportAttributeOptionCombo
-    result[`${aocExport}-${cocExport}`] = pi.id
+    result[`${aocExport}-${cocExport}`] = { id: pi.id, analyticsPeriodBoundaries: apb }
   }
   return result
 }
@@ -115,5 +134,5 @@ export default function calculatePis(dsUid, deUid, piUid, coMaps, metadata) {
   const combinedFilters = combineFilters(baseFilter, dsFilters, deFilters)
   const pi = getByUid(piUid, programIndicators)
   const existingPis = getExistingPis(piUid, generatedPis)
-  return createPiJSON(pi, combinedFilters, existingPis)
+  return createPiJSON(pi, deUid, combinedFilters, existingPis)
 }

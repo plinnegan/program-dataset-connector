@@ -39,22 +39,41 @@ const query = {
   dataStore: {
     resource: 'dataStore',
   },
+  mappingAttr: {
+    resource: 'attributes',
+    params: {
+      filter: 'id:eq:b8KbU93phhz',
+      fields: 'id',
+    },
+  },
 }
 
-const mutation = {
+const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
   type: 'create',
   data: { piDeMaps: {}, coMap: {} },
 }
 
+const attrMutation = {
+  resource: 'attributes',
+  type: 'create',
+  data: config.indCustomAttr,
+}
+
 const MyApp = () => {
   const { loading, error, data: metadata } = useDataQuery(query)
-  const [mutate] = useDataMutation(mutation)
+  const [mutateDataStore] = useDataMutation(dataStoreMutation)
+  const [mutateAttribute] = useDataMutation(attrMutation)
   const { dataStoreName } = config
 
   useEffect(() => {
-    if (metadata && !metadata.dataStore.includes(dataStoreName)) {
-      mutate()
+    if (metadata) {
+      if (!metadata.dataStore.includes(dataStoreName)) {
+        mutateDataStore()
+      }
+      if (metadata.mappingAttr.attributes.length === 0) {
+        mutateAttribute()
+      }
     }
   }, [metadata])
 
