@@ -1,11 +1,157 @@
 {
+  "coMaps": {
+    "B3nxOazOO2G": {
+      "name": "APHIAplus",
+      "filter": "#{partnerDe} == 'c'"
+    },
+    "C6nZpLKjEJr": {
+      "name": "African Medical and Research Foundation",
+      "filter": "#{partnerDe} == 'a'"
+    },
+    "CW81uF03hvV": {
+      "name": "AIDSRelief Consortium",
+      "filter": "#{partnerDe} == 'b'"
+    },
+    "FbLZS3ueWbQ": {
+      "name": "0-11m",
+      "filter": "A{monthsAttruid} < 12"
+    },
+    "IG8vRsn0HNl": {
+      "name": "Age 50+",
+      "filter": "A{ageTeaUid00} >= 50"
+    },
+    "K4gwuiVvW3z": {
+      "name": "0-4y",
+      "filter": "A{ageTeaUid} < 5"
+    },
+    "LEWNFo4Qrrs": {
+      "name": "World Concern",
+      "filter": "#{partnerDe} == 'n'"
+    },
+    "M58XdOfhiJ7": {
+      "name": "Provide access to basic education",
+      "filter": "#{partnerDe} == 't'"
+    },
+    "OUUdG3sdOqb": {
+      "name": "Provide access to primary health care",
+      "filter": "#{partnerDe} == 's'"
+    },
+    "RkbOhHwiOgW": {
+      "name": "CARE International",
+      "filter": "#{partnerDe} == 'd'"
+    },
+    "TY5rBQzlBRa": {
+      "name": "Family Health International",
+      "filter": "#{partnerDe} == 'e'"
+    },
+    "UOqJW6HPvvL": {
+      "name": "Age 15-24",
+      "filter": "A{ageTeaUid00} >= 15 && A{ageTeaUid00} < 25"
+    },
+    "VLFVaH1MwnF": {
+      "name": "Pathfinder International",
+      "filter": "#{partnerDe} == 'j'"
+    },
+    "WAl0OCcIYxr": {
+      "name": "Age 25-49",
+      "filter": "A{ageTeaUid00} >= 25 && A{ageTeaUid00} < 50"
+    },
+    "XK6u6cJCR0t": {
+      "name": "Population Services International",
+      "filter": "#{partnerDe} == 'l'"
+    },
+    "ZZxYuoTCcDd": {
+      "name": "15y+",
+      "filter": "A{yearsAttrUid} >= 15"
+    },
+    "apsOixVZlf1": {
+      "name": "Female",
+      "filter": "A{sexTeaUid00} == 'female2'"
+    },
+    "dHl52Uo56Ct": {
+      "name": ">18m",
+      "filter": "A{monthsOldTea} > 18"
+    },
+    "dPSWsKeAZNw": {
+      "name": "12-18m",
+      "filter": "A{monthsOldTea} >= 12 && A{monthsOldTea} <=18"
+    },
+    "dUm5jaCTPBb": {
+      "name": "5-14y",
+      "filter": "A{yearsAttrUid} >=5 && A{yearsAttrUid} < 15"
+    },
+    "e5YBV5F5iUd": {
+      "name": "Plan International",
+      "filter": "#{partnerDe} == 'k'"
+    },
+    "g3bcPGD5Q5i": {
+      "name": "International Rescue Committee",
+      "filter": "#{partnerDe} == 'g'"
+    },
+    "hERJraxV8D9": {
+      "name": "Hope Worldwide",
+      "filter": "#{partnerDe} == 'f'"
+    },
+    "i4Nbp8S2G6A": {
+      "name": "Improve access to clean water",
+      "filter": "#{partnerDe} == 'q'"
+    },
+    "jRbMi0aBjYn": {
+      "name": "Male",
+      "filter": "A{sexTeaUid00} == 'male'"
+    },
+    "nuHLu6GaiWI": {
+      "name": "<12m",
+      "filter": "A{monthsOldTea} < 12"
+    },
+    "oaFqxkefkPs": {
+      "name": "5y+",
+      "filter": "A{ageTeaUid} >= 5"
+    },
+    "rEq3Hkd3XXH": {
+      "name": "12-59m",
+      "filter": "A{monthsAttruid} >= 12 && A{monthsAttruid} < 60"
+    },
+    "uilaJSyXt7d": {
+      "name": "World Vision",
+      "filter": "#{partnerDe} == 'p'"
+    },
+    "xEunk8LPzkb": {
+      "name": "World Relief",
+      "filter": "#{partnerDe} == 'o'"
+    },
+    "xYerKDKCefk": {
+      "name": "default",
+      "filter": ""
+    },
+    "xwZ2u3WyQR0": {
+      "name": "Unicef",
+      "filter": "#{partnerDe} == 'm'"
+    },
+    "yMj2MnmNI8L": {
+      "name": "Improve access to medicines",
+      "filter": "#{partnerDe} == 'r'"
+    },
+    "yfWXlxYNbhy": {
+      "name": "IntraHealth International",
+      "filter": "#{partnerDe} == 'h'"
+    },
+    "yrwgRxRhBoU": {
+      "name": "Path",
+      "filter": "#{partnerDe} == 'i'"
+    },
+    "zs2Ra6sikup": {
+      "name": "Age <15",
+      "filter": "A{ageTeaUid00} < 15"
+    }
+  },
   "dePiMaps": {
     "rowId001": {
-      "deUid": "tez3RZUxDmt",
+      "deUid": "FQ2o8UBlcrS",
       "dsUid": "lyLU2wR22tC",
       "piUid": "x7PaHGvgWY2",
       "rowId": "rowId001",
-      "deName": "deName01",
+      "deName": "Acute Flaccid Paralysis (AFP) new",
       "dsName": "ART monthly summary",
       "piName": "BMI"
     },
@@ -26,32 +172,6 @@
       "deName": "deName03",
       "dsName": "ART monthly summary",
       "piName": "Inpatient cases"
-    }
-  },
-  "coMaps": {
-    "IG8vRsn0HNl": {
-      "name": "Age 50+",
-      "filter": "A{ageTeaUid00} >= 50"
-    },
-    "UOqJW6HPvvL": {
-      "name": "Age 15-24",
-      "filter": "A{ageTeaUid00} >= 15 && A{ageTeaUid00} < 25"
-    },
-    "WAl0OCcIYxr": {
-      "name": "Age 25-49",
-      "filter": "A{ageTeaUid00} >= 25 && A{ageTeaUid00} < 50"
-    },
-    "apsOixVZlf1": {
-      "name": "Female",
-      "filter": "A{sexTeaUid00} == 'female1'"
-    },
-    "jRbMi0aBjYn": {
-      "name": "Male",
-      "filter": "A{sexTeaUid00} == 'male'"
-    },
-    "zs2Ra6sikup": {
-      "name": "Age <15",
-      "filter": "A{ageTeaUid00} < 15"
     }
   }
 }

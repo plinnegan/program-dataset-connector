@@ -140,22 +140,23 @@ const Page = ({ metadata, existingConfig }) => {
           </TableRowHead>
         </TableHead>
         <TableBody>
-          {Object.entries(dePiMaps).map(([key, { dsName, deName, piName }]) => (
-            <Row
-              key={key}
-              dsName={dsName}
-              deName={deName}
-              piName={piName}
-              rowId={key}
-              handleClick={handleRowClick}
-              generatePis={generatePis}
-              handleDelete={onDelete}
-            />
-          ))}
+          {Object.keys(dePiMaps).length &&
+            Object.entries(dePiMaps).map(([key, { dsName, deName, piName }]) => (
+              <Row
+                key={key}
+                dsName={dsName}
+                deName={deName}
+                piName={piName}
+                rowId={key}
+                handleClick={handleRowClick}
+                generatePis={generatePis}
+                handleDelete={onDelete}
+              />
+            ))}
         </TableBody>
         <TableFoot>
           <TableRow>
-            <TableCell>
+            <TableCell colSpan="4">
               <Button primary onClick={() => addRow()}>
                 Add row
               </Button>
@@ -163,6 +164,9 @@ const Page = ({ metadata, existingConfig }) => {
           </TableRow>
         </TableFoot>
       </Table>
+      <Button primary className={classes.newRowBtn} onClick={() => addRow()}>
+        Add row
+      </Button>
     </div>
   )
 }

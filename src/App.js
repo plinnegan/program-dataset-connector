@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDataQuery, useDataMutation } from '@dhis2/app-runtime'
 import i18n from '@dhis2/d2-i18n'
 import classes from './App.module.css'
@@ -51,7 +51,7 @@ const query = {
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
   type: 'create',
-  data: { piDeMaps: {}, coMap: {} },
+  data: { dePiMaps: {}, coMaps: {} },
 }
 
 const attrMutation = {
@@ -62,6 +62,7 @@ const attrMutation = {
 
 const MyApp = () => {
   const { loading, error, data: metadata } = useDataQuery(query)
+  const [dataStoreSetup] = useState(false)
   const [mutateDataStore] = useDataMutation(dataStoreMutation)
   const [mutateAttribute] = useDataMutation(attrMutation)
   const { dataStoreName } = config
