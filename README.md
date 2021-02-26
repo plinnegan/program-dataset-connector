@@ -1,5 +1,11 @@
 This project was bootstrapped with [DHIS2 Application Platform](https://github.com/dhis2/app-platform).
 
+## TODO
+
+- Delete should also delete PIs
+- Short name uniqueness
+- Delete new row when user selects cancel
+
 ## Available Scripts
 
 In the project directory, you can run:

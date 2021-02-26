@@ -9,6 +9,8 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
   const [coMappings, setCoMappings] = useState({})
   const [availableDes, setAvailableDes] = useState(metadata.dataElements.dataElements)
 
+  const disableSave = [rowData.dsUid, rowData.deUid, rowData.piUid].includes('')
+
   useEffect(() => {
     setCoMappings(getCosFromRow(rowData.dsUid, rowData.deUid, metadata, coMaps))
   }, [rowData.deUid, rowData.dsUid])
@@ -62,7 +64,7 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
       <ModalActions>
         <ButtonStrip>
           <Button onClick={handleClose}>Close</Button>
-          <Button primary onClick={(e) => handleUpdate(rowData, coMappings)}>
+          <Button primary disabled={disableSave} onClick={(e) => handleUpdate(rowData, coMappings)}>
             Save
           </Button>
         </ButtonStrip>
