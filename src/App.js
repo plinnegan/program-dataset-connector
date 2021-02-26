@@ -20,7 +20,7 @@ const query = {
     resource: 'dataElements',
     params: {
       fields:
-        'id,name,categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
+        'id,name,dataSetElements(dataSet),categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
       filter: 'domainType:eq:AGGREGATE',
       paging: 'false',
     },

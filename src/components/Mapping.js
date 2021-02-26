@@ -7,11 +7,26 @@ import CoFilters from './CoFilters'
 const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => {
   const [rowData, setRowData] = useState(rowDataIn)
   const [coMappings, setCoMappings] = useState({})
-  console.log('rowData', rowData)
+  const [availableDes, setAvailableDes] = useState(metadata.dataElements.dataElements)
 
   useEffect(() => {
     setCoMappings(getCosFromRow(rowData.dsUid, rowData.deUid, metadata, coMaps))
   }, [rowData.deUid, rowData.dsUid])
+
+  const handleDsSelect = (rowData) => {
+    const dss = metadata.dataSets.dataSets
+    const des = metadata.dataElements.dataElements
+    const ds = dss.filter((ds) => ds.id === rowData.dsUid)[0]
+    const selectedDe = des.filter((de) => de.id === rowData.deUid)[0]
+    const filteredDeUids = ds.dataSetElements.map((dse) => dse.dataElement.id)
+    const deOpts = des.filter((de) => filteredDeUids.includes(de.id))
+    if (selectedDe && !filteredDeUids.includes(selectedDe.id)) {
+      rowData.deUid = ''
+      rowData.deName = ''
+    }
+    setAvailableDes(deOpts)
+    setRowData(rowData)
+  }
 
   return (
     <Modal large>
@@ -22,11 +37,11 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
           rowData={rowData}
           label="Data Set"
           updateFields={{ uid: 'dsUid', name: 'dsName' }}
-          onSelect={setRowData}
+          onSelect={handleDsSelect}
         />
         <br />
         <RowFieldSelect
-          metadata={metadata.dataElements.dataElements}
+          metadata={availableDes}
           rowData={rowData}
           label="Data Element"
           updateFields={{ uid: 'deUid', name: 'deName' }}

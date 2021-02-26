@@ -71,7 +71,6 @@ const Page = ({ metadata, existingConfig }) => {
       return { ...result, [id]: id === rowData.rowId ? rowData : mapInfo }
     }, {})
     const newCoMaps = { ...coMaps, ...coMappings }
-    console.log(newDePiMaps)
     setDePiMaps(newDePiMaps)
     setCoMap(newCoMaps)
     setShowModal(false)

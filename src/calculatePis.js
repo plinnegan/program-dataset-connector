@@ -66,7 +66,6 @@ function createPiJSON(pi, deUid, filters, existingPis) {
   const importData = []
   const pisToDelete = []
   const processedAocCocs = {}
-  console.log('filters', filters)
   for (const [idx, { cocUid, aocUid, filter, suffix }] of filters.entries()) {
     const aocCoc = `${aocUid}-${cocUid}`
     processedAocCocs[aocCoc] = true
