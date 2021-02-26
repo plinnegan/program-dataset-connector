@@ -12,7 +12,7 @@ const query = {
     resource: 'dataSets',
     params: {
       fields:
-        'id,name,dataSetElements(dataElement(id)),categoryCombo(id,categoryOptionCombos(id,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
+        'id,name,dataSetElements(dataElement(id)),categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
       paging: 'false',
     },
   },
@@ -20,7 +20,7 @@ const query = {
     resource: 'dataElements',
     params: {
       fields:
-        'id,name,categoryCombo(id,categoryOptionCombos(id,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
+        'id,name,categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
       filter: 'domainType:eq:AGGREGATE',
       paging: 'false',
     },
@@ -62,8 +62,8 @@ const attrMutation = {
 
 const MyApp = () => {
   const { loading, error, data: metadata } = useDataQuery(query)
-  const [dataStoreSetup] = useState(false)
-  const [mutateDataStore] = useDataMutation(dataStoreMutation)
+  const [dataStoreSetup, setDataStoreSetup] = useState(false)
+  const [mutateDataStore] = useDataMutation(dataStoreMutation, { onComplete: () => setDataStoreSetup(true) })
   const [mutateAttribute] = useDataMutation(attrMutation)
   const { dataStoreName } = config
 
@@ -82,7 +82,7 @@ const MyApp = () => {
     <div className={classes.container}>
       {loading && <Loader>Loading...</Loader>}
       {error && <Error>Error {error.message}</Error>}
-      {metadata && metadata.dataStore.includes(dataStoreName) ? (
+      {metadata && (metadata.dataStore.includes(dataStoreName) || dataStoreSetup) ? (
         <ConnectDataStore metadata={metadata}></ConnectDataStore>
       ) : (
         <Loader>Setting up datastore...</Loader>

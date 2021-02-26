@@ -10,13 +10,14 @@ import {
   TableRow,
   TableCell,
   Button,
+  AlertBar,
 } from '@dhis2/ui'
 import Row from './Row'
 import Mapping from './Mapping'
 import { config } from '../consts'
 import classes from '../App.module.css'
 import calculatePis from '../calculatePis'
-import { makeUid } from '../utils'
+import { makeUid, getCosFromRow } from '../utils'
 
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
@@ -44,6 +45,8 @@ const Page = ({ metadata, existingConfig }) => {
   const [coMaps, setCoMap] = useState(existingConfig.coMaps)
   const [showModal, setShowModal] = useState(false)
   const [selectedRowData, setSelectedRowData] = useState({})
+  const [showWarning, setShowWarning] = useState(false)
+  const [warning, setWarning] = useState('')
   const engine = useDataEngine()
 
   useEffect(() => {
@@ -89,6 +92,13 @@ const Page = ({ metadata, existingConfig }) => {
 
   const generatePis = (rowId) => {
     const { dsUid, deUid, piUid } = dePiMaps[rowId]
+    const rowCoMapping = getCosFromRow(dsUid, deUid, metadata, coMaps)
+    const rowFilters = Object.values(rowCoMapping).reduce((acc, { filter }) => [...acc, filter], [])
+    if (rowFilters.includes('')) {
+      setWarning('Cannot generate PIs, missing filters')
+      setShowWarning(true)
+      return
+    }
     const { createUpdatePis, deletePis } = calculatePis(dsUid, deUid, piUid, coMaps, metadata)
     console.log('createUpdatePis', createUpdatePis)
     console.log('deletePis', deletePis)
@@ -140,7 +150,7 @@ const Page = ({ metadata, existingConfig }) => {
           </TableRowHead>
         </TableHead>
         <TableBody>
-          {Object.keys(dePiMaps).length &&
+          {Object.keys(dePiMaps).length > 0 &&
             Object.entries(dePiMaps).map(([key, { dsName, deName, piName }]) => (
               <Row
                 key={key}
@@ -164,6 +174,11 @@ const Page = ({ metadata, existingConfig }) => {
           </TableRow>
         </TableFoot>
       </Table>
+      {showWarning && (
+        <AlertBar icon permanent warning onHidden={(e) => setShowWarning(false)}>
+          {warning}
+        </AlertBar>
+      )}
       <Button primary className={classes.newRowBtn} onClick={() => addRow()}>
         Add row
       </Button>

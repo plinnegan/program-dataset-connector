@@ -3,7 +3,8 @@ function getCosFromMetadata(metadata, coMaps) {
     (acc, curr) => [...acc, ...curr.categoryOptions.map((co) => ({ uid: co.id, name: co.name }))],
     []
   )
-  const coMapList = cos.map(({ uid, name }) =>
+  const withoutDefault = cos.filter(({ name }) => name !== 'default')
+  const coMapList = withoutDefault.map(({ uid, name }) =>
     uid in coMaps ? { [uid]: coMaps[uid] } : { [uid]: { name: name, filter: '' } }
   )
   return coMapList.reduce((acc, curr) => {

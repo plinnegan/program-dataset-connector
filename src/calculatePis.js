@@ -29,6 +29,7 @@ function getFilters(metaItem, coMaps) {
     let cocFilter = ''
     let cocSuffix = ''
     for (const co of coc.categoryOptions) {
+      if (co.name === 'default') continue
       if (cocFilter === '') {
         cocFilter = `(${coMaps[co.id].filter})`
         cocSuffix = ` (${co.name})`
@@ -48,11 +49,13 @@ function combineFilters(baseFilter, dsFilters, deFilters) {
     const { cocUid: aocUid, filter: dsFilter, suffix: dsSuffix } = dsFilterInfo
     for (const deFilterInfo of deFilters) {
       const { cocUid, filter: deFilter, suffix: deSuffix } = deFilterInfo
+      const newFilterArr = [baseFilter, dsFilter, deFilter].filter((arrItem) => arrItem !== '')
+      const newSuffixArr = [dsSuffix, deSuffix].filter((suffix) => suffix !== '(default)')
       result.push({
         cocUid,
         aocUid,
-        filter: baseFilter === '' ? `${dsFilter} && ${deFilter}` : `${baseFilter} && ${dsFilter} && ${deFilter}`,
-        suffix: dsSuffix + deSuffix,
+        filter: newFilterArr.join(' && '),
+        suffix: newSuffixArr.join(''),
       })
     }
   }

@@ -10,4 +10,3 @@ export const config = {
     programIndicatorAttribute: true,
   },
 }
-export const defaultCoUid = 'xYerKDKCefk'

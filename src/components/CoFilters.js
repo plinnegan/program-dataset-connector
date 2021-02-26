@@ -1,7 +1,6 @@
 import React from 'react'
 import { Table, TableHead, TableRowHead, TableCellHead, TableBody } from '@dhis2/ui'
 import RowCatFilter from './RowCatFilter'
-import { defaultCoUid } from '../consts'
 
 const noCoStyle = {
   textAlign: 'center',
@@ -9,11 +8,11 @@ const noCoStyle = {
 }
 
 const CoFilters = ({ coMappings, setCoMappings }) => {
-  const filteredCoUids = Object.keys(coMappings).filter((coUid) => coUid !== defaultCoUid)
+  const coUids = Object.keys(coMappings)
   return (
     <>
-      {filteredCoUids.length === 0 && <p style={noCoStyle}>No category options for the selected data element</p>}
-      {filteredCoUids.length > 0 && (
+      {coUids.length === 0 && <p style={noCoStyle}>No category options for the selected data element</p>}
+      {coUids.length > 0 && (
         <Table>
           <TableHead>
             <TableRowHead>
