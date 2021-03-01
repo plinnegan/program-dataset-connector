@@ -2,7 +2,6 @@ This project was bootstrapped with [DHIS2 Application Platform](https://github.c
 
 ## TODO
 
-- Delete should also delete PIs
 - Short name uniqueness
 - Delete new row when user selects cancel
 

@@ -62,12 +62,13 @@ function combineFilters(baseFilter, dsFilters, deFilters) {
   return result
 }
 
-function createPiJSON(pi, deUid, filters, existingPis) {
+function createPiJSON(pi, deUid, filters, existingPis, combinedUid) {
   const importData = []
   const pisToDelete = []
   const processedAocCocs = {}
-  for (const [idx, { cocUid, aocUid, filter, suffix }] of filters.entries()) {
+  for (const { cocUid, aocUid, filter, suffix } of filters.values()) {
     const aocCoc = `${aocUid}-${cocUid}`
+    const snUnique = `${aocUid.slice(0, 3)}-${cocUid.slice(0, 3)}-${combinedUid}`
     processedAocCocs[aocCoc] = true
     const newPi = JSON.parse(JSON.stringify(pi))
     if (aocCoc in existingPis) {
@@ -82,8 +83,8 @@ function createPiJSON(pi, deUid, filters, existingPis) {
     newPi.id = aocCoc in existingPis ? existingPis[aocCoc] : makeUid()
     newPi.filter = filter
     newPi.code = ''
-    newPi.description = `pi-source-${pi.id}`
-    newPi.shortName = `${pi.shortName} (${idx})`
+    newPi.description = combinedUid
+    newPi.shortName = snUnique
     newPi.attributeValues = [
       {
         value: deUid,
@@ -109,8 +110,8 @@ function createPiJSON(pi, deUid, filters, existingPis) {
   }
 }
 
-function getExistingPis(piUid, existingGeneratedPis) {
-  const thesePis = existingGeneratedPis.filter((pi) => pi.description === `pi-source-${piUid}`)
+function getExistingPis(piUid, existingGeneratedPis, combinedUid) {
+  const thesePis = existingGeneratedPis.filter((pi) => pi.description === combinedUid)
   const result = {}
   for (const pi in thesePis) {
     const apb = pi.analyticsPeriodBoundaries
@@ -127,6 +128,7 @@ export default function calculatePis(dsUid, deUid, piUid, coMaps, metadata) {
     ...metadata.dataElements,
     ...metadata.programIndicators,
   }
+  const combinedUid = `${dsUid.slice(0, 3)}-${deUid.slice(0, 3)}-${piUid.slice(0, 3)}`
   const generatedPis = metadata.generatedPis.programIndicators
   const baseFilter = getBaseFilter(piUid, programIndicators)
   const ds = getByUid(dsUid, dataSets)
@@ -135,6 +137,6 @@ export default function calculatePis(dsUid, deUid, piUid, coMaps, metadata) {
   const deFilters = getFilters(de, coMaps, dataElements)
   const combinedFilters = combineFilters(baseFilter, dsFilters, deFilters)
   const pi = getByUid(piUid, programIndicators)
-  const existingPis = getExistingPis(piUid, generatedPis)
-  return createPiJSON(pi, deUid, combinedFilters, existingPis)
+  const existingPis = getExistingPis(piUid, generatedPis, combinedUid)
+  return createPiJSON(pi, deUid, combinedFilters, existingPis, combinedUid)
 }
