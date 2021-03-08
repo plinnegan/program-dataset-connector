@@ -96,6 +96,8 @@ const Page = ({ metadata, existingConfig }) => {
   }
 
   const onDelete = (rowId) => {
+    const delPis = data.generatedPis.programIndicators.filter((pi) => pi.description.includes(rowId))
+    const delInds = data.generatedInds.indicators.filter((ind) => ind.description.includes(rowId))
     const newDePiMaps = Object.entries(dePiMaps).reduce((acc, [id, mapInfo]) => {
       if (id === rowId) {
         return acc
@@ -105,6 +107,7 @@ const Page = ({ metadata, existingConfig }) => {
     }, {})
     setDePiMaps(newDePiMaps)
     engine.mutate(dataStoreMutation, { variables: { data: { dePiMaps: newDePiMaps, coMaps: coMaps } } })
+    engine.mutate(deleteMutation, { variables: { data: { programIndicators: delPis, indicators: delInds } } })
   }
 
   const generateInds = (rowId) => {
