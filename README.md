@@ -2,7 +2,8 @@ This project was bootstrapped with [DHIS2 Application Platform](https://github.c
 
 ## TODO
 
-- Short name uniqueness
+- Create indicators
+- Delete PIs when row deleted
 - Delete new row when user selects cancel
 
 ## Available Scripts

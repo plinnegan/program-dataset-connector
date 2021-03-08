@@ -1,4 +1,5 @@
 import { makeUid } from './utils'
+import { config } from './consts'
 
 class PiCalculationError extends Error {
   constructor(message) {
@@ -62,34 +63,24 @@ function combineFilters(baseFilter, dsFilters, deFilters) {
   return result
 }
 
-function createPiJSON(pi, deUid, filters, existingPis, combinedUid) {
+function createPiJSON(rowId, pi, deUid, filters, combinedUid) {
   const importData = []
-  const pisToDelete = []
-  const processedAocCocs = {}
   for (const { cocUid, aocUid, filter, suffix } of filters.values()) {
-    const aocCoc = `${aocUid}-${cocUid}`
     const snUnique = `${aocUid.slice(0, 3)}-${cocUid.slice(0, 3)}-${combinedUid}`
-    processedAocCocs[aocCoc] = true
     const newPi = JSON.parse(JSON.stringify(pi))
-    if (aocCoc in existingPis) {
-      newPi.id = existingPis[aocCoc].id
-      newPi.analyticsPeriodBoundaries = existingPis[aocCoc].analyticsPeriodBoundaries
-    } else {
-      newPi.id = makeUid()
-      for (const apb of newPi.analyticsPeriodBoundaries) {
-        delete apb.id
-      }
+    for (const apb of newPi.analyticsPeriodBoundaries) {
+      delete apb.id
     }
-    newPi.id = aocCoc in existingPis ? existingPis[aocCoc] : makeUid()
+    newPi.id = makeUid()
     newPi.filter = filter
     newPi.code = ''
-    newPi.description = combinedUid
+    newPi.description = `${rowId}-${aocUid}-${cocUid}`
     newPi.shortName = snUnique
     newPi.attributeValues = [
       {
         value: deUid,
         attribute: {
-          id: 'b8KbU93phhz',
+          id: config.indCustomAttr.id,
         },
       },
     ]
@@ -98,38 +89,17 @@ function createPiJSON(pi, deUid, filters, existingPis, combinedUid) {
     newPi.aggregateExportAttributeOptionCombo = aocUid
     importData.push(newPi)
   }
-  for (const aocCoc in existingPis) {
-    if (!(aocCoc in processedAocCocs)) {
-      // If existing pi combo is not in new config, it needs deleting
-      pisToDelete.push({ id: existingPis[aocCoc] })
-    }
-  }
-  return {
-    createUpdatePis: { programIndicators: importData },
-    deletePis: { programIndicators: pisToDelete },
-  }
+  return { programIndicators: importData }
 }
 
-function getExistingPis(piUid, existingGeneratedPis, combinedUid) {
-  const thesePis = existingGeneratedPis.filter((pi) => pi.description === combinedUid)
-  const result = {}
-  for (const pi in thesePis) {
-    const apb = pi.analyticsPeriodBoundaries
-    const cocExport = pi.aggregateExportCategoryOptionCombo
-    const aocExport = pi.aggregateExportAttributeOptionCombo
-    result[`${aocExport}-${cocExport}`] = { id: pi.id, analyticsPeriodBoundaries: apb }
-  }
-  return result
-}
-
-export default function calculatePis(dsUid, deUid, piUid, coMaps, metadata) {
+export function calculatePis(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedPis) {
   const { dataSets, dataElements, programIndicators } = {
     ...metadata.dataSets,
     ...metadata.dataElements,
     ...metadata.programIndicators,
   }
+  const deleteOldPis = generatedPis.filter((pi) => pi.description.includes(rowId))
   const combinedUid = `${dsUid.slice(0, 3)}-${deUid.slice(0, 3)}-${piUid.slice(0, 3)}`
-  const generatedPis = metadata.generatedPis.programIndicators
   const baseFilter = getBaseFilter(piUid, programIndicators)
   const ds = getByUid(dsUid, dataSets)
   const dsFilters = getFilters(ds, coMaps)
@@ -137,6 +107,63 @@ export default function calculatePis(dsUid, deUid, piUid, coMaps, metadata) {
   const deFilters = getFilters(de, coMaps, dataElements)
   const combinedFilters = combineFilters(baseFilter, dsFilters, deFilters)
   const pi = getByUid(piUid, programIndicators)
-  const existingPis = getExistingPis(piUid, generatedPis, combinedUid)
-  return createPiJSON(pi, deUid, combinedFilters, existingPis, combinedUid)
+  const piUpdates = { deletePis: { programIndicators: deleteOldPis } }
+  piUpdates.createUpdatePis = createPiJSON(rowId, pi, deUid, combinedFilters, combinedUid)
+  return piUpdates
+}
+
+function generateInd(indUid, piSource, indTypeUid) {
+  const piAttr = piSource.attributeValues.filter((attrVal) => attrVal.attribute.id === config.indCustomAttr.id)
+  if (piAttr.length === 0) {
+    throw ValueError(
+      `Program indicator ${piSource.id} does not have de mapping attribute value for custom attribute ${config.indCustomAttr.id}`
+    )
+  }
+  return {
+    id: indUid,
+    name: piSource.name,
+    shortName: piSource.shortName,
+    aggregateExportCategoryOptionCombo: piSource.aggregateExportCategoryOptionCombo,
+    aggregateExportAttributeOptionCombo: piSource.aggregateExportAttributeOptionCombo,
+    description: piSource.description,
+    denominatorDescription: '1',
+    numeratorDescription: piSource.name,
+    numerator: `I{${piSource.id}}`,
+    denominator: '1',
+    indicatorType: { id: indTypeUid },
+    attributeValues: [
+      {
+        value: piAttr[0].value,
+        attribute: {
+          id: config.indCustomAttr.id,
+        },
+      },
+    ],
+  }
+}
+
+export function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes) {
+  const createUpdateInds = []
+  const deleteInds = []
+  const indTypeUid = indTypes[0].id
+  for (const pi of createUpdatePis.programIndicators) {
+    const existingInd = generatedInds.filter((ind) => ind.description === pi.description)
+    let indUid
+    if (existingInd.length === 0) {
+      indUid = makeUid()
+    } else {
+      indUid = existingInd[0].id
+    }
+    createUpdateInds.push(generateInd(indUid, pi, indTypeUid))
+  }
+  for (const pi of deletePis.programIndicators) {
+    const existingInd = generatedInds.filter((ind) => ind.description === pi.description)
+    if (existingInd.length) {
+      deleteInds.push({ id: existingInd[0].id })
+    }
+  }
+  return {
+    createUpdateInds: { indicators: createUpdateInds },
+    deleteInds: { indicators: deleteInds },
+  }
 }

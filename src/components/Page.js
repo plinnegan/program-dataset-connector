@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useDataEngine } from '@dhis2/app-runtime'
+import { useDataEngine, useDataQuery } from '@dhis2/app-runtime'
 import {
   Table,
   TableHead,
@@ -16,7 +16,7 @@ import Row from './Row'
 import Mapping from './Mapping'
 import { config } from '../consts'
 import classes from '../App.module.css'
-import calculatePis from '../calculatePis'
+import { calculatePis, calculateInds } from '../calculateInds'
 import { makeUid, getCosFromRow } from '../utils'
 
 const dataStoreMutation = {
@@ -25,13 +25,13 @@ const dataStoreMutation = {
   data: ({ data }) => data,
 }
 
-const createUpdatePisMutation = {
+const createUpdateMutation = {
   resource: `metadata`,
   type: 'create',
   data: ({ data }) => data,
 }
 
-const deletePisMutation = {
+const deleteMutation = {
   resource: `metadata`,
   type: 'create',
   data: ({ data }) => data,
@@ -40,11 +40,29 @@ const deletePisMutation = {
   },
 }
 
+const generatedMeta = {
+  generatedPis: {
+    resource: 'programIndicators',
+    params: {
+      filter: 'name:like:(generated)',
+      fields: 'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
+    },
+  },
+  generatedInds: {
+    resource: 'indicators',
+    params: {
+      filter: 'name:like:(generated)',
+      fields: 'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
+    },
+  },
+}
+
 const Page = ({ metadata, existingConfig }) => {
   const [dePiMaps, setDePiMaps] = useState(existingConfig.dePiMaps)
   const [coMaps, setCoMap] = useState(existingConfig.coMaps)
   const [showModal, setShowModal] = useState(false)
   const [selectedRowData, setSelectedRowData] = useState({})
+  const { loading, data, refetch } = useDataQuery(generatedMeta)
   const [showWarning, setShowWarning] = useState(false)
   const [warning, setWarning] = useState('')
   const engine = useDataEngine()
@@ -89,7 +107,7 @@ const Page = ({ metadata, existingConfig }) => {
     engine.mutate(dataStoreMutation, { variables: { data: { dePiMaps: newDePiMaps, coMaps: coMaps } } })
   }
 
-  const generatePis = (rowId) => {
+  const generateInds = (rowId) => {
     const { dsUid, deUid, piUid } = dePiMaps[rowId]
     const rowCoMapping = getCosFromRow(dsUid, deUid, metadata, coMaps)
     const rowFilters = Object.values(rowCoMapping).reduce((acc, { filter }) => [...acc, filter], [])
@@ -98,11 +116,31 @@ const Page = ({ metadata, existingConfig }) => {
       setShowWarning(true)
       return
     }
-    const { createUpdatePis, deletePis } = calculatePis(dsUid, deUid, piUid, coMaps, metadata)
-    console.log('createUpdatePis', createUpdatePis)
-    console.log('deletePis', deletePis)
-    engine.mutate(createUpdatePisMutation, { variables: { data: createUpdatePis } })
-    engine.mutate(deletePisMutation, { variables: { data: deletePis } })
+    const { programIndicators: generatedPis, indicators: generatedInds } = {
+      ...data.generatedPis,
+      ...data.generatedInds,
+    }
+    const { createUpdatePis, deletePis } = calculatePis(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedPis)
+    const indTypes = metadata.indicatorTypes.indicatorTypes
+    const { createUpdateInds, deleteInds } = calculateInds(createUpdatePis, deletePis, generatedInds, indTypes)
+    const createUpdatePayload = { ...createUpdatePis, ...createUpdateInds }
+    const deletePayload = { ...deletePis, ...deleteInds }
+    if (deletePayload.programIndicators.length || deletePayload.indicators.length) {
+      engine.mutate(deleteMutation, {
+        variables: { data: deletePayload },
+        onComplete: () => {
+          engine.mutate(createUpdateMutation, {
+            variables: { data: createUpdatePayload },
+            onComplete: refetch,
+          })
+        },
+      })
+    } else {
+      engine.mutate(createUpdateMutation, {
+        variables: { data: createUpdatePayload },
+        onComplete: refetch,
+      })
+    }
   }
 
   const addRow = () => {
@@ -158,8 +196,9 @@ const Page = ({ metadata, existingConfig }) => {
                 piName={piName}
                 rowId={key}
                 handleClick={handleRowClick}
-                generatePis={generatePis}
+                generateInds={generateInds}
                 handleDelete={onDelete}
+                disabled={loading}
               />
             ))}
         </TableBody>

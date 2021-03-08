@@ -29,13 +29,6 @@ const query = {
     resource: 'programIndicators',
     params: { filter: 'name:!like:(generated)', fields: ':owner', paging: 'false' },
   },
-  generatedPis: {
-    resource: 'programIndicators',
-    params: {
-      filter: 'name:like:(generated)',
-      fields: 'id,code,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
-    },
-  },
   dataStore: {
     resource: 'dataStore',
   },
@@ -43,6 +36,13 @@ const query = {
     resource: 'attributes',
     params: {
       filter: 'id:eq:b8KbU93phhz',
+      fields: 'id',
+    },
+  },
+  indicatorTypes: {
+    resource: 'indicatorTypes',
+    params: {
+      filter: 'factor:eq:1',
       fields: 'id',
     },
   },
@@ -54,10 +54,16 @@ const dataStoreMutation = {
   data: { dePiMaps: {}, coMaps: {} },
 }
 
+const indTypeMutation = {
+  resource: `indicatorTypes`,
+  type: 'create',
+  data: config.indType,
+}
+
 const attrMutation = {
   resource: 'attributes',
   type: 'create',
-  data: config.indCustomAttr,
+  data: { indicatorTypes: config.indCustomAttr },
 }
 
 const MyApp = () => {
@@ -65,6 +71,7 @@ const MyApp = () => {
   const [dataStoreSetup, setDataStoreSetup] = useState(false)
   const [mutateDataStore] = useDataMutation(dataStoreMutation, { onComplete: () => setDataStoreSetup(true) })
   const [mutateAttribute] = useDataMutation(attrMutation)
+  const [mutateIndType] = useDataMutation(indTypeMutation)
   const { dataStoreName } = config
 
   useEffect(() => {
@@ -74,6 +81,9 @@ const MyApp = () => {
       }
       if (metadata.mappingAttr.attributes.length === 0) {
         mutateAttribute()
+      }
+      if (metadata.indicatorTypes.indicatorTypes.length === 0) {
+        mutateIndType()
       }
     }
   }, [metadata])

@@ -9,4 +9,10 @@ export const config = {
     valueType: 'TEXT',
     programIndicatorAttribute: true,
   },
+  indType: {
+    name: 'Number (Factor 1)',
+    id: 'JkWynlWMjJR',
+    number: true,
+    factor: 1,
+  },
 }
