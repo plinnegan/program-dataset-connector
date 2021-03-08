@@ -80,6 +80,13 @@ const Page = ({ metadata, existingConfig }) => {
   }
 
   const handleClose = () => {
+    const noBlankRows = {}
+    for (const [key, values] of Object.entries(dePiMaps)) {
+      if (values.newRow === undefined) {
+        noBlankRows[key] = values
+      }
+    }
+    setDePiMaps(noBlankRows)
     setShowModal(false)
   }
 
