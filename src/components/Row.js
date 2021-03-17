@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, ButtonStrip, TableRow, TableCell } from '@dhis2/ui'
 
-const Row = ({ dsName, deName, piName, rowId, handleClick, generateInds, handleDelete, disabled }) => {
+const Row = ({ dsName, deName, piName, rowId, handleClick, generateMapping, handleDelete, disabled }) => {
   return (
     <TableRow key={rowId}>
       <TableCell key={`${rowId}-dsName`}>{dsName}</TableCell>
@@ -12,7 +12,7 @@ const Row = ({ dsName, deName, piName, rowId, handleClick, generateInds, handleD
           <Button disabled={disabled} secondary onClick={(e) => handleClick(rowId)}>
             Edit
           </Button>
-          <Button disabled={disabled} primary onClick={(e) => generateInds(rowId)}>
+          <Button disabled={disabled} primary onClick={(e) => generateMapping(rowId)}>
             Generate Mapping
           </Button>
           <Button disabled={disabled} destructive onClick={(e) => handleDelete(rowId)}>

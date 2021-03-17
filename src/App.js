@@ -63,7 +63,7 @@ const indTypeMutation = {
 const attrMutation = {
   resource: 'attributes',
   type: 'create',
-  data: { indicatorTypes: config.indCustomAttr },
+  data: config.indCustomAttr,
 }
 
 const MyApp = () => {

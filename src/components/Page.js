@@ -16,7 +16,7 @@ import Row from './Row'
 import Mapping from './Mapping'
 import { config } from '../consts'
 import classes from '../App.module.css'
-import { calculatePis, calculateInds } from '../calculateInds'
+import generateDataMapping from '../calculateInds'
 import { makeUid, getCosFromRow } from '../utils'
 
 const dataStoreMutation = {
@@ -53,6 +53,15 @@ const generatedMeta = {
     params: {
       filter: 'name:like:(generated)',
       fields: 'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
+      paging: 'false',
+    },
+  },
+  generatedIndGroups: {
+    resource: 'indicatorGroups',
+    params: {
+      filter: 'name:like:(generated)',
+      fields: 'id,name',
+      paging: 'false',
     },
   },
 }
@@ -62,7 +71,7 @@ const Page = ({ metadata, existingConfig }) => {
   const [coMaps, setCoMap] = useState(existingConfig.coMaps)
   const [showModal, setShowModal] = useState(false)
   const [selectedRowData, setSelectedRowData] = useState({})
-  const { loading, data, refetch } = useDataQuery(generatedMeta)
+  const { loading, data: generatedMetadata, refetch } = useDataQuery(generatedMeta)
   const [showWarning, setShowWarning] = useState(false)
   const [warning, setWarning] = useState('')
   const engine = useDataEngine()
@@ -103,8 +112,14 @@ const Page = ({ metadata, existingConfig }) => {
   }
 
   const onDelete = (rowId) => {
-    const delPis = data.generatedPis.programIndicators.filter((pi) => pi.description.includes(rowId))
-    const delInds = data.generatedInds.indicators.filter((ind) => ind.description.includes(rowId))
+    const { programIndicators: generatedPis, indicators: generatedInds, indicatorGroups: generatedIndGroups } = {
+      ...generatedMetadata.generatedPis,
+      ...generatedMetadata.generatedInds,
+      ...generatedMetadata.generatedIndGroups,
+    }
+    const delPis = generatedPis.filter((pi) => pi.description.includes(rowId))
+    const delInds = generatedInds.filter((ind) => ind.description.includes(rowId))
+    const delIndGroups = generatedIndGroups.filter((indGroup) => indGroup.name.includes(rowId))
     const newDePiMaps = Object.entries(dePiMaps).reduce((acc, [id, mapInfo]) => {
       if (id === rowId) {
         return acc
@@ -114,10 +129,12 @@ const Page = ({ metadata, existingConfig }) => {
     }, {})
     setDePiMaps(newDePiMaps)
     engine.mutate(dataStoreMutation, { variables: { data: { dePiMaps: newDePiMaps, coMaps: coMaps } } })
-    engine.mutate(deleteMutation, { variables: { data: { programIndicators: delPis, indicators: delInds } } })
+    engine.mutate(deleteMutation, {
+      variables: { data: { programIndicators: delPis, indicators: delInds, indicatorGroups: delIndGroups } },
+    })
   }
 
-  const generateInds = (rowId) => {
+  const generateMapping = (rowId) => {
     const { dsUid, deUid, piUid } = dePiMaps[rowId]
     const rowCoMapping = getCosFromRow(dsUid, deUid, metadata, coMaps)
     const rowFilters = Object.values(rowCoMapping).reduce((acc, { filter }) => [...acc, filter], [])
@@ -126,28 +143,20 @@ const Page = ({ metadata, existingConfig }) => {
       setShowWarning(true)
       return
     }
-    const { programIndicators: generatedPis, indicators: generatedInds } = {
-      ...data.generatedPis,
-      ...data.generatedInds,
-    }
-    const { createUpdatePis, deletePis } = calculatePis(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedPis)
-    const indTypes = metadata.indicatorTypes.indicatorTypes
-    const { createUpdateInds, deleteInds } = calculateInds(createUpdatePis, deletePis, generatedInds, indTypes)
-    const createUpdatePayload = { ...createUpdatePis, ...createUpdateInds }
-    const deletePayload = { ...deletePis, ...deleteInds }
-    if (deletePayload.programIndicators.length || deletePayload.indicators.length) {
+    const results = generateDataMapping(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedMetadata)
+    if (results.needsDelete) {
       engine.mutate(deleteMutation, {
-        variables: { data: deletePayload },
+        variables: { data: results.deleteMetadata },
         onComplete: () => {
           engine.mutate(createUpdateMutation, {
-            variables: { data: createUpdatePayload },
+            variables: { data: results.createUpdateMetadata },
             onComplete: refetch,
           })
         },
       })
     } else {
       engine.mutate(createUpdateMutation, {
-        variables: { data: createUpdatePayload },
+        variables: { data: results.createUpdateMetadata },
         onComplete: refetch,
       })
     }
@@ -206,7 +215,7 @@ const Page = ({ metadata, existingConfig }) => {
                 piName={piName}
                 rowId={key}
                 handleClick={handleRowClick}
-                generateInds={generateInds}
+                generateMapping={generateMapping}
                 handleDelete={onDelete}
                 disabled={loading}
               />

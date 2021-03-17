@@ -64,7 +64,7 @@ function combineFilters(baseFilter, dsFilters, deFilters) {
 }
 
 function createPiJSON(rowId, pi, deUid, filters, combinedUid) {
-  const importData = []
+  const pis = []
   for (const { cocUid, aocUid, filter, suffix } of filters.values()) {
     const snUnique = `${aocUid.slice(0, 3)}-${cocUid.slice(0, 3)}-${combinedUid}`
     const newPi = JSON.parse(JSON.stringify(pi))
@@ -87,12 +87,12 @@ function createPiJSON(rowId, pi, deUid, filters, combinedUid) {
     newPi.name = `${pi.name}${suffix} (generated)`
     newPi.aggregateExportCategoryOptionCombo = cocUid
     newPi.aggregateExportAttributeOptionCombo = aocUid
-    importData.push(newPi)
+    pis.push(newPi)
   }
-  return { programIndicators: importData }
+  return pis
 }
 
-export function calculatePis(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedPis) {
+function calculatePis(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedPis) {
   const { dataSets, dataElements, programIndicators } = {
     ...metadata.dataSets,
     ...metadata.dataElements,
@@ -107,18 +107,23 @@ export function calculatePis(rowId, dsUid, deUid, piUid, coMaps, metadata, gener
   const deFilters = getFilters(de, coMaps, dataElements)
   const combinedFilters = combineFilters(baseFilter, dsFilters, deFilters)
   const pi = getByUid(piUid, programIndicators)
-  const piUpdates = { deletePis: { programIndicators: deleteOldPis } }
+  const piUpdates = { deletePis: deleteOldPis }
   piUpdates.createUpdatePis = createPiJSON(rowId, pi, deUid, combinedFilters, combinedUid)
   return piUpdates
 }
 
-function generateInd(indUid, piSource, indTypeUid) {
-  const piAttr = piSource.attributeValues.filter((attrVal) => attrVal.attribute.id === config.indCustomAttr.id)
-  if (piAttr.length === 0) {
+function getMappingAttr(attributeValues) {
+  const attrVal = attributeValues.filter((attrVal) => attrVal.attribute.id === config.indCustomAttr.id)
+  if (attrVal.length === 0) {
     throw ValueError(
       `Program indicator ${piSource.id} does not have de mapping attribute value for custom attribute ${config.indCustomAttr.id}`
     )
+  } else {
+    return attrVal[0].value
   }
+}
+
+function generateInd(indUid, piSource, indTypeUid) {
   return {
     id: indUid,
     name: piSource.name,
@@ -133,7 +138,7 @@ function generateInd(indUid, piSource, indTypeUid) {
     indicatorType: { id: indTypeUid },
     attributeValues: [
       {
-        value: piAttr[0].value,
+        value: getMappingAttr(piSource.attributeValues),
         attribute: {
           id: config.indCustomAttr.id,
         },
@@ -142,11 +147,29 @@ function generateInd(indUid, piSource, indTypeUid) {
   }
 }
 
-export function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes) {
+function calculateIndGroup(rowId, generatedIndGroups, createUpdateInds) {
+  const IndGroups = generatedIndGroups.filter((indGroup) =>
+    indGroup.name.includes(`indMappingGroup-${rowId} (generated)`)
+  )
+  let indGroup
+  if (IndGroups.length) {
+    indGroup = IndGroups[0]
+  } else {
+    const uid = makeUid()
+    indGroup = {
+      name: `indMappingGroup-${rowId} (/api/analytics/dataValueSet.json?dimension=dx:IN_GROUP-${uid}&outputIdScheme=ATTRIBUTE:${config.indCustomAttr.id})`,
+      id: uid,
+    }
+  }
+  indGroup.indicators = createUpdateInds.map((ind) => ({ id: ind.id }))
+  return indGroup
+}
+
+function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes) {
   const createUpdateInds = []
   const deleteInds = []
   const indTypeUid = indTypes[0].id
-  for (const pi of createUpdatePis.programIndicators) {
+  for (const pi of createUpdatePis) {
     const existingInd = generatedInds.filter((ind) => ind.description === pi.description)
     let indUid
     if (existingInd.length === 0) {
@@ -156,14 +179,39 @@ export function calculateInds(createUpdatePis, deletePis, generatedInds, indType
     }
     createUpdateInds.push(generateInd(indUid, pi, indTypeUid))
   }
-  for (const pi of deletePis.programIndicators) {
+  for (const pi of deletePis) {
     const existingInd = generatedInds.filter((ind) => ind.description === pi.description)
     if (existingInd.length) {
       deleteInds.push({ id: existingInd[0].id })
     }
   }
   return {
-    createUpdateInds: { indicators: createUpdateInds },
-    deleteInds: { indicators: deleteInds },
+    createUpdateInds,
+    deleteInds,
   }
+}
+
+export default function generateDataMapping(rowId, dsUid, deUid, piUid, coMaps, baseMetadata, generatedMetadata) {
+  const indTypes = baseMetadata.indicatorTypes.indicatorTypes
+  const { programIndicators: generatedPis, indicators: generatedInds, indicatorGroups: generatedIndGroups } = {
+    ...generatedMetadata.generatedPis,
+    ...generatedMetadata.generatedInds,
+    ...generatedMetadata.generatedIndGroups,
+  }
+  const { createUpdatePis, deletePis } = calculatePis(rowId, dsUid, deUid, piUid, coMaps, baseMetadata, generatedPis)
+  const { createUpdateInds, deleteInds } = calculateInds(createUpdatePis, deletePis, generatedInds, indTypes)
+  const indGroup = calculateIndGroup(rowId, generatedIndGroups, createUpdateInds)
+  return {
+    createUpdateMetadata: {
+      programIndicators: createUpdatePis,
+      indicators: createUpdateInds,
+      indicatorGroups: [indGroup],
+    },
+    deleteMetadata: {
+      programIndicators: deletePis,
+      indicators: deleteInds,
+    },
+    needsDelete: deletePis.length > 0 || deleteInds.length > 0,
+  }
+  //const exportAttr = getMappingAttr(createUpdatePis.programIndicators[0])
 }
