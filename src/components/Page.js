@@ -216,7 +216,7 @@ const Page = ({ metadata, existingConfig }) => {
             <TableCellHead key="deName">Data Element</TableCellHead>
             <TableCellHead key="piName">Program Indicator</TableCellHead>
             <TableCellHead key="edit"></TableCellHead>
-            <TableCellHead className={loaderTd} key="status"></TableCellHead>
+            <TableCellHead key="status"></TableCellHead>
           </TableRowHead>
         </TableHead>
         <TableBody>

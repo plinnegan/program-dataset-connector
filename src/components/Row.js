@@ -7,7 +7,6 @@ const loaderTd = {
 }
 
 const Row = ({ dsName, deName, piName, rowId, handleClick, generateMapping, handleDelete, loading }) => {
-  console.log(loading)
   return (
     <TableRow key={rowId}>
       <TableCell key={`${rowId}-dsName`}>{dsName}</TableCell>
