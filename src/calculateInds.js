@@ -157,7 +157,7 @@ function calculateIndGroup(rowId, generatedIndGroups, createUpdateInds) {
   } else {
     const uid = makeUid()
     indGroup = {
-      name: `indMappingGroup-${rowId} (/api/analytics/dataValueSet.json?dimension=dx:IN_GROUP-${uid}&outputIdScheme=ATTRIBUTE:${config.indCustomAttr.id})`,
+      name: `indMappingGroup-${rowId} (/api/analytics/dataValueSet.json?dimension=dx:IN_GROUP-${uid}&outputIdScheme=ATTRIBUTE:${config.indCustomAttr.id})  (generated)`,
       id: uid,
     }
   }

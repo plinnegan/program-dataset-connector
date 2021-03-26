@@ -46,6 +46,7 @@ const generatedMeta = {
     params: {
       filter: 'name:like:(generated)',
       fields: 'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
+      paging: 'false',
     },
   },
   generatedInds: {
@@ -68,6 +69,9 @@ const generatedMeta = {
 
 const Page = ({ metadata, existingConfig }) => {
   const [dePiMaps, setDePiMaps] = useState(existingConfig.dePiMaps)
+  const [rowsLoading, setRowsLoading] = useState(
+    Object.keys(dePiMaps).reduce((acc, rowId) => ({ ...acc, [rowId]: false }), {})
+  )
   const [coMaps, setCoMap] = useState(existingConfig.coMaps)
   const [showModal, setShowModal] = useState(false)
   const [selectedRowData, setSelectedRowData] = useState({})
@@ -108,7 +112,9 @@ const Page = ({ metadata, existingConfig }) => {
     setDePiMaps(newDePiMaps)
     setCoMap(newCoMaps)
     setShowModal(false)
-    engine.mutate(dataStoreMutation, { variables: { data: { dePiMaps: newDePiMaps, coMaps: newCoMaps } } })
+    engine.mutate(dataStoreMutation, {
+      variables: { data: { dePiMaps: newDePiMaps, coMaps: newCoMaps } },
+    })
   }
 
   const onDelete = (rowId) => {
@@ -136,6 +142,7 @@ const Page = ({ metadata, existingConfig }) => {
 
   const generateMapping = (rowId) => {
     const { dsUid, deUid, piUid } = dePiMaps[rowId]
+    setRowsLoading({ ...rowsLoading, [rowId]: true })
     const rowCoMapping = getCosFromRow(dsUid, deUid, metadata, coMaps)
     const rowFilters = Object.values(rowCoMapping).reduce((acc, { filter }) => [...acc, filter], [])
     if (rowFilters.includes('')) {
@@ -150,14 +157,20 @@ const Page = ({ metadata, existingConfig }) => {
         onComplete: () => {
           engine.mutate(createUpdateMutation, {
             variables: { data: results.createUpdateMetadata },
-            onComplete: refetch,
+            onComplete: () => {
+              refetch()
+              setRowsLoading({ ...rowsLoading, [rowId]: false })
+            },
           })
         },
       })
     } else {
       engine.mutate(createUpdateMutation, {
         variables: { data: results.createUpdateMetadata },
-        onComplete: refetch,
+        onComplete: () => {
+          refetch()
+          setRowsLoading({ ...rowsLoading, [rowId]: false })
+        },
       })
     }
   }
@@ -203,6 +216,7 @@ const Page = ({ metadata, existingConfig }) => {
             <TableCellHead key="deName">Data Element</TableCellHead>
             <TableCellHead key="piName">Program Indicator</TableCellHead>
             <TableCellHead key="edit"></TableCellHead>
+            <TableCellHead className={loaderTd} key="status"></TableCellHead>
           </TableRowHead>
         </TableHead>
         <TableBody>
@@ -217,13 +231,13 @@ const Page = ({ metadata, existingConfig }) => {
                 handleClick={handleRowClick}
                 generateMapping={generateMapping}
                 handleDelete={onDelete}
-                disabled={loading}
+                loading={rowsLoading[key]}
               />
             ))}
         </TableBody>
         <TableFoot>
           <TableRow>
-            <TableCell colSpan="4">
+            <TableCell colSpan="5">
               <Button primary onClick={() => addRow()}>
                 Add row
               </Button>

@@ -2,9 +2,9 @@ This project was bootstrapped with [DHIS2 Application Platform](https://github.c
 
 ## TODO
 
-- Create indicators
-- Delete PIs when row deleted
-- Delete new row when user selects cancel
+- Commenting
+- Testing
+- Typescipt?
 
 ## Available Scripts
 
