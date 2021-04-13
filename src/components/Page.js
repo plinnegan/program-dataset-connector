@@ -18,6 +18,8 @@ import { config } from '../consts'
 import classes from '../App.module.css'
 import generateDataMapping from '../calculateInds'
 import { makeUid, getCosFromRow } from '../utils'
+import { MappingGenerationError } from '../Errors'
+import ImportSummary from './ImportSummary'
 
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
@@ -74,6 +76,8 @@ const Page = ({ metadata, existingConfig }) => {
   )
   const [coMaps, setCoMap] = useState(existingConfig.coMaps)
   const [showModal, setShowModal] = useState(false)
+  const [showImportStatus, setShowImportStatus] = useState(false)
+  const [importResults, setImportResults] = useState({ success: null, message: 'Import not complete' })
   const [selectedRowData, setSelectedRowData] = useState({})
   const { loading, data: generatedMetadata, refetch } = useDataQuery(generatedMeta)
   const [showWarning, setShowWarning] = useState(false)
@@ -140,6 +144,11 @@ const Page = ({ metadata, existingConfig }) => {
     })
   }
 
+  const generateMappingComplete = (rowId) => {
+    setRowsLoading({ ...rowsLoading, [rowId]: false })
+    setShowImportStatus(true)
+  }
+
   const generateMapping = (rowId) => {
     const { dsUid, deUid, piUid } = dePiMaps[rowId]
     setRowsLoading({ ...rowsLoading, [rowId]: true })
@@ -148,30 +157,42 @@ const Page = ({ metadata, existingConfig }) => {
     if (rowFilters.includes('')) {
       setWarning('Cannot generate PIs, missing filters')
       setShowWarning(true)
+      setRowsLoading({ ...rowsLoading, [rowId]: false })
       return
     }
-    const results = generateDataMapping(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedMetadata)
-    if (results.needsDelete) {
-      engine.mutate(deleteMutation, {
-        variables: { data: results.deleteMetadata },
-        onComplete: () => {
-          engine.mutate(createUpdateMutation, {
-            variables: { data: results.createUpdateMetadata },
-            onComplete: () => {
-              refetch()
-              setRowsLoading({ ...rowsLoading, [rowId]: false })
-            },
-          })
-        },
-      })
-    } else {
-      engine.mutate(createUpdateMutation, {
-        variables: { data: results.createUpdateMetadata },
-        onComplete: () => {
-          refetch()
-          setRowsLoading({ ...rowsLoading, [rowId]: false })
-        },
-      })
+    try {
+      const results = generateDataMapping(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedMetadata)
+      if (results.needsDelete) {
+        engine.mutate(deleteMutation, {
+          variables: { data: results.deleteMetadata },
+          onComplete: () => {
+            engine.mutate(createUpdateMutation, {
+              variables: { data: results.createUpdateMetadata },
+              onComplete: () => {
+                refetch()
+                setImportResults({ success: true, message: 'Imported successfully' })
+                generateMappingComplete(rowId)
+              },
+            })
+          },
+        })
+      } else {
+        engine.mutate(createUpdateMutation, {
+          variables: { data: results.createUpdateMetadata },
+          onComplete: () => {
+            refetch()
+            setImportResults({ success: true, message: 'Imported successfully' })
+            generateMappingComplete(rowId)
+          },
+        })
+      }
+    } catch (e) {
+      if (e instanceof MappingGenerationError) {
+        setImportResults({ success: false, message: e.message })
+        generateMappingComplete(rowId)
+      } else {
+        throw e
+      }
     }
   }
 
@@ -208,6 +229,9 @@ const Page = ({ metadata, existingConfig }) => {
           handleUpdate={handleRowUpdate}
           metadata={metadata}
         ></Mapping>
+      )}
+      {showImportStatus && (
+        <ImportSummary handleClose={() => setShowImportStatus(false)} importResults={importResults} />
       )}
       <Table>
         <TableHead>

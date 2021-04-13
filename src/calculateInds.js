@@ -1,5 +1,6 @@
 import { makeUid } from './utils'
 import { config } from './consts'
+import { MappingGenerationError } from './Errors'
 
 class PiCalculationError extends Error {
   constructor(message) {
@@ -32,6 +33,11 @@ function getFilters(metaItem, coMaps) {
     for (const co of coc.categoryOptions) {
       if (co.name === 'default') continue
       if (cocFilter === '') {
+        if (!(co.id in coMaps)) {
+          throw new MappingGenerationError(
+            'Found a category option combo which cannot be constructed from the assigned categories, this typically means the COCs on the data element or data set need updating to align with the categories'
+          )
+        }
         cocFilter = `(${coMaps[co.id].filter})`
         cocSuffix = ` (${co.name})`
       } else {
