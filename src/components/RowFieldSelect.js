@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { SingleSelectField, SingleSelectOption } from '@dhis2/ui'
 
 const RowFieldSelect = ({ metadata, rowData, label, updateFields, onSelect }) => {
@@ -13,6 +14,22 @@ const RowFieldSelect = ({ metadata, rowData, label, updateFields, onSelect }) =>
       ))}
     </SingleSelectField>
   )
+}
+
+RowFieldSelect.propTypes = {
+  metadata: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.string, name: PropTypes.string })).isRequired,
+  rowData: PropTypes.shape({
+    deUid: PropTypes.string.isRequired,
+    dsUid: PropTypes.string.isRequired,
+    piUid: PropTypes.string.isRequired,
+    rowId: PropTypes.string.isRequired,
+    deName: PropTypes.string.isRequired,
+    dsName: PropTypes.string.isRequired,
+    piName: PropTypes.string.isRequired,
+  }).isRequired,
+  label: PropTypes.string.isRequired,
+  updateFields: PropTypes.shape({ uid: PropTypes.string.isRequired, name: PropTypes.string.isRequired }).isRequired,
+  onSelect: PropTypes.func.isRequired,
 }
 
 export default RowFieldSelect

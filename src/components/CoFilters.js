@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Table, TableHead, TableRowHead, TableCellHead, TableBody } from '@dhis2/ui'
 import RowCatFilter from './RowCatFilter'
 
@@ -37,6 +38,13 @@ const CoFilters = ({ coMappings, setCoMappings }) => {
       )}
     </>
   )
+}
+
+CoFilters.propTypes = {
+  coMappings: PropTypes.objectOf(
+    PropTypes.shape({ name: PropTypes.string.isRequired, filter: PropTypes.string.isRequired })
+  ).isRequired,
+  setCoMappings: PropTypes.func.isRequired,
 }
 
 export default CoFilters

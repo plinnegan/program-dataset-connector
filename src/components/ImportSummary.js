@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Modal, ModalTitle, ModalContent, ModalActions, ButtonStrip, Button } from '@dhis2/ui'
 
 const ImportSummary = ({ handleClose, importResults }) => {
@@ -17,6 +18,11 @@ const ImportSummary = ({ handleClose, importResults }) => {
       </ModalActions>
     </Modal>
   )
+}
+
+ImportSummary.propTypes = {
+  handleClose: PropTypes.func,
+  importResults: PropTypes.shape({ success: PropTypes.bool.isRequired, message: PropTypes.string.isRequired }),
 }
 
 export default ImportSummary

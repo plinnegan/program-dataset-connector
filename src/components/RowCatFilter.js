@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import PropTypes from 'prop-types'
 import { Button, TableRow, TableCell, InputField } from '@dhis2/ui'
 
 const RowCatFilter = ({ rowId, catName, catFilter, coMappings, handleClick }) => {
@@ -30,6 +31,16 @@ const RowCatFilter = ({ rowId, catName, catFilter, coMappings, handleClick }) =>
       </TableCell>
     </TableRow>
   )
+}
+
+RowCatFilter.propTypes = {
+  rowId: PropTypes.string.isRequired,
+  catName: PropTypes.string.isRequired,
+  catFilter: PropTypes.string.isRequired,
+  coMappings: PropTypes.objectOf(
+    PropTypes.shape({ name: PropTypes.string.isRequired, filter: PropTypes.string.isRequired })
+  ).isRequired,
+  handleClick: PropTypes.func.isRequired,
 }
 
 export default RowCatFilter

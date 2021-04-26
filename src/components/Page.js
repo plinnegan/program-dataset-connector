@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import { useDataEngine, useDataQuery } from '@dhis2/app-runtime'
 import {
   Table,
@@ -208,6 +209,7 @@ const Page = ({ metadata, existingConfig }) => {
       rowId: rowId,
       newRow: true,
     }
+    setRowsLoading({ ...rowsLoading, [rowId]: false })
     setDePiMaps({ ...dePiMaps, [rowId]: newRow })
   }
 
@@ -279,6 +281,31 @@ const Page = ({ metadata, existingConfig }) => {
       </Button>
     </div>
   )
+}
+
+Page.propTypes = {
+  metadata: PropTypes.shape({
+    dataSets: PropTypes.shape({ dataSets: PropTypes.array }).isRequired,
+    dataElements: PropTypes.shape({ dataElements: PropTypes.array }).isRequired,
+    programIndicators: PropTypes.shape({ programIndicators: PropTypes.array }).isRequired,
+    dataStore: PropTypes.array.isRequired,
+  }),
+  existingConfig: PropTypes.shape({
+    coMaps: PropTypes.objectOf(
+      PropTypes.shape({ name: PropTypes.string.isRequired, filter: PropTypes.string.isRequired })
+    ).isRequired,
+    dePiMaps: PropTypes.objectOf(
+      PropTypes.shape({
+        deUid: PropTypes.string.isRequired,
+        dsUid: PropTypes.string.isRequired,
+        piUid: PropTypes.string.isRequired,
+        rowId: PropTypes.string.isRequired,
+        deName: PropTypes.string.isRequired,
+        dsName: PropTypes.string.isRequired,
+        piName: PropTypes.string.isRequired,
+      })
+    ).isRequired,
+  }).isRequired,
 }
 
 export default Page

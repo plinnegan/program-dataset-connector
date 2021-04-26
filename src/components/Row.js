@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Button, ButtonStrip, TableRow, TableCell, CircularLoader } from '@dhis2/ui'
 
 const loaderTd = {
@@ -30,6 +31,17 @@ const Row = ({ dsName, deName, piName, rowId, handleClick, generateMapping, hand
       </TableCell>
     </TableRow>
   )
+}
+
+Row.propTypes = {
+  dsName: PropTypes.string.isRequired,
+  deName: PropTypes.string.isRequired,
+  piName: PropTypes.string.isRequired,
+  rowId: PropTypes.string.isRequired,
+  handleClick: PropTypes.func.isRequired,
+  generateMapping: PropTypes.func.isRequired,
+  handleDelete: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
 }
 
 export default Row

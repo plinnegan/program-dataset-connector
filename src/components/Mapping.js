@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import { Modal, ModalTitle, ModalContent, ModalActions, ButtonStrip, Button } from '@dhis2/ui'
 import { getCosFromRow } from '../utils'
 import RowFieldSelect from './RowFieldSelect'
@@ -8,6 +9,7 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
   const [rowData, setRowData] = useState(rowDataIn)
   const [coMappings, setCoMappings] = useState({})
   const [availableDes, setAvailableDes] = useState(metadata.dataElements.dataElements)
+  console.log(metadata)
 
   const disableSave = [rowData.dsUid, rowData.deUid, rowData.piUid].includes('')
 
@@ -71,6 +73,29 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
       </ModalActions>
     </Modal>
   )
+}
+
+Mapping.propTypes = {
+  coMaps: PropTypes.objectOf(
+    PropTypes.shape({ name: PropTypes.string.isRequired, filter: PropTypes.string.isRequired })
+  ).isRequired,
+  rowDataIn: PropTypes.shape({
+    deUid: PropTypes.string.isRequired,
+    dsUid: PropTypes.string.isRequired,
+    piUid: PropTypes.string.isRequired,
+    rowId: PropTypes.string.isRequired,
+    deName: PropTypes.string.isRequired,
+    dsName: PropTypes.string.isRequired,
+    piName: PropTypes.string.isRequired,
+  }).isRequired,
+  metadata: PropTypes.shape({
+    dataSets: PropTypes.shape({ dataSets: PropTypes.array }).isRequired,
+    dataElements: PropTypes.shape({ dataElements: PropTypes.array }).isRequired,
+    programIndicators: PropTypes.shape({ programIndicators: PropTypes.array }).isRequired,
+    dataStore: PropTypes.array.isRequired,
+  }),
+  handleClose: PropTypes.func.isRequired,
+  handleUpdate: PropTypes.func.isRequired,
 }
 
 export default Mapping
