@@ -199,7 +199,11 @@ function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes) {
 
 export default function generateDataMapping(rowId, dsUid, deUid, piUid, coMaps, baseMetadata, generatedMetadata) {
   const indTypes = baseMetadata.indicatorTypes.indicatorTypes
-  const { programIndicators: generatedPis, indicators: generatedInds, indicatorGroups: generatedIndGroups } = {
+  const {
+    programIndicators: generatedPis,
+    indicators: generatedInds,
+    indicatorGroups: generatedIndGroups,
+  } = {
     ...generatedMetadata.generatedPis,
     ...generatedMetadata.generatedInds,
     ...generatedMetadata.generatedIndGroups,
@@ -219,5 +223,4 @@ export default function generateDataMapping(rowId, dsUid, deUid, piUid, coMaps, 
     },
     needsDelete: deletePis.length > 0 || deleteInds.length > 0,
   }
-  //const exportAttr = getMappingAttr(createUpdatePis.programIndicators[0])
 }

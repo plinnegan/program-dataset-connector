@@ -21,6 +21,7 @@ import generateDataMapping from '../calculateInds'
 import { makeUid, getCosFromRow } from '../utils'
 import { MappingGenerationError } from '../Errors'
 import ImportSummary from './ImportSummary'
+import ActionButtons from './ActionButtons'
 
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
@@ -123,7 +124,11 @@ const Page = ({ metadata, existingConfig }) => {
   }
 
   const onDelete = (rowId) => {
-    const { programIndicators: generatedPis, indicators: generatedInds, indicatorGroups: generatedIndGroups } = {
+    const {
+      programIndicators: generatedPis,
+      indicators: generatedInds,
+      indicatorGroups: generatedIndGroups,
+    } = {
       ...generatedMetadata.generatedPis,
       ...generatedMetadata.generatedInds,
       ...generatedMetadata.generatedIndGroups,
@@ -150,7 +155,14 @@ const Page = ({ metadata, existingConfig }) => {
     setShowImportStatus(true)
   }
 
-  const generateMapping = (rowId) => {
+  function generateAll() {
+    const rowIds = Object.keys(dePiMaps)
+    generateMapping(rowIds)
+  }
+
+  const generateMapping = (rowIds) => {
+    const multiRowUpdate = Array.isArray(rowIds)
+    const rowId = multiRowUpdate ? rowIds.shift() : rowIds
     const { dsUid, deUid, piUid } = dePiMaps[rowId]
     setRowsLoading({ ...rowsLoading, [rowId]: true })
     const rowCoMapping = getCosFromRow(dsUid, deUid, metadata, coMaps)
@@ -173,6 +185,9 @@ const Page = ({ metadata, existingConfig }) => {
                 refetch()
                 setImportResults({ success: true, message: 'Imported successfully' })
                 generateMappingComplete(rowId)
+                if (multiRowUpdate && rowIds.length) {
+                  generateMapping(rowIds)
+                }
               },
             })
           },
@@ -184,6 +199,9 @@ const Page = ({ metadata, existingConfig }) => {
             refetch()
             setImportResults({ success: true, message: 'Imported successfully' })
             generateMappingComplete(rowId)
+            if (multiRowUpdate && rowIds.length) {
+              generateMapping(rowIds)
+            }
           },
         })
       }
@@ -191,6 +209,9 @@ const Page = ({ metadata, existingConfig }) => {
       if (e instanceof MappingGenerationError) {
         setImportResults({ success: false, message: e.message })
         generateMappingComplete(rowId)
+        if (multiRowUpdate && rowIds.length) {
+          generateMapping(rowIds)
+        }
       } else {
         throw e
       }
@@ -276,9 +297,7 @@ const Page = ({ metadata, existingConfig }) => {
           {warning}
         </AlertBar>
       )}
-      <Button primary className={classes.newRowBtn} onClick={() => addRow()}>
-        Add row
-      </Button>
+      <ActionButtons addRow={addRow} generateAll={generateAll} />
     </div>
   )
 }
