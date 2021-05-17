@@ -90,7 +90,7 @@ function createPiJSON(rowId, pi, deUid, filters, combinedUid) {
         },
       },
     ]
-    newPi.name = `${pi.name}${suffix} (generated)`
+    newPi.name = `${pi.name}${suffix} (${rowId})`
     newPi.aggregateExportCategoryOptionCombo = cocUid
     newPi.aggregateExportAttributeOptionCombo = aocUid
     pis.push(newPi)
