@@ -106,7 +106,7 @@ export function filterRowsByText(dePiMaps, orderedRowIds, text) {
   }
   const textLower = text.toLocaleLowerCase()
   const result = []
-  for (rowId of orderedRowIds) {
+  for (const rowId of orderedRowIds) {
     const { dsName, deName, piName } = dePiMaps[rowId]
     const dsLower = dsName.toLocaleLowerCase()
     const deLower = deName.toLocaleLowerCase()

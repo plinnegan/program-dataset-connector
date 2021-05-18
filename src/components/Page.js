@@ -275,7 +275,7 @@ const Page = ({ metadata, existingConfig }) => {
 
   return (
     <div className={classes.pageDiv}>
-      <h1>Event to Aggregate Mappings</h1>
+      <h1>Program Dataset Connector</h1>
       <p>
         This application is used to link program indicators to a data elements in a specific data set. This is used to
         generate copies of the program indicator for each of the disaggregations assigned to the data element in the
@@ -297,12 +297,13 @@ const Page = ({ metadata, existingConfig }) => {
       )}
       <InputField
         className={classes.filterInput}
+        inputWidth={'20vw'}
         label="Filter"
         name="filter"
         value={filterText}
         onChange={(e) => handleFilterChange(e)}
       />
-      <Table>
+      <Table className={classes.dataTable}>
         <TableHead>
           <TableRowHead>
             <TableCellHead key="selected">
