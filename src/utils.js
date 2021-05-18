@@ -67,3 +67,30 @@ export function removeKey(obj, key) {
     }
   }, {})
 }
+
+/**
+ * Return a copy of an object with the top level keys sorted by the
+ * @param {Object} obj: Object with keys to be sorted
+ * @param {*} key
+ */
+export function sortByKeyValue(obj, key) {
+  const valKeyMap = Object.entries(obj).reduce((acc, [topKey, val]) => {
+    if (val[key] in acc) {
+      return { ...acc, [val[key]]: [...acc[val[key]], topKey] }
+    } else {
+      return { ...acc, [val[key]]: [topKey] }
+    }
+  }, {})
+  const sortedValArr = Object.values(obj)
+    .map((val) => val[key])
+    .sort()
+  let result = []
+  const processedVals = []
+  for (const val of sortedValArr) {
+    if (!processedVals.includes(val)) {
+      result = [...result, ...valKeyMap[val]]
+      processedVals.push(val)
+    }
+  }
+  return result
+}

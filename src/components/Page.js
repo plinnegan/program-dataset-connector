@@ -19,10 +19,11 @@ import Mapping from './Mapping'
 import { config } from '../consts'
 import classes from '../App.module.css'
 import generateDataMapping from '../calculateInds'
-import { makeUid, getCosFromRow, removeKey } from '../utils'
+import { makeUid, getCosFromRow, removeKey, sortByKeyValue } from '../utils'
 import { MappingGenerationError } from '../Errors'
 import ImportSummary from './ImportSummary'
 import ActionButtons from './ActionButtons'
+import SortButton from './SortButton'
 
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
@@ -74,6 +75,7 @@ const generatedMeta = {
 
 const Page = ({ metadata, existingConfig }) => {
   const [dePiMaps, setDePiMaps] = useState(existingConfig.dePiMaps)
+  const [orderedRowIds, setOrderedRowIds] = useState(Object.keys(dePiMaps))
   const [rowsLoading, setRowsLoading] = useState(
     Object.keys(dePiMaps).reduce((acc, rowId) => ({ ...acc, [rowId]: false }), {})
   )
@@ -249,6 +251,10 @@ const Page = ({ metadata, existingConfig }) => {
     setDePiMaps({ ...dePiMaps, [rowId]: newRow })
   }
 
+  const sortByColumn = (columnProp) => {
+    setOrderedRowIds(sortByKeyValue(dePiMaps, columnProp))
+  }
+
   return (
     <div className={classes.pageDiv}>
       <h1>Event to Aggregate Mappings</h1>
@@ -277,30 +283,39 @@ const Page = ({ metadata, existingConfig }) => {
             <TableCellHead key="selected">
               <Checkbox checked={allRowsSelected} onChange={handleAllRowsSelected} />
             </TableCellHead>
-            <TableCellHead key="dsName">Data Set</TableCellHead>
-            <TableCellHead key="deName">Data Element</TableCellHead>
-            <TableCellHead key="piName">Program Indicator</TableCellHead>
+            <TableCellHead key="dsName">
+              Data Set <SortButton handleClick={() => sortByColumn('dsName')} />
+            </TableCellHead>
+            <TableCellHead key="deName">
+              Data Element <SortButton handleClick={() => sortByColumn('deName')} />
+            </TableCellHead>
+            <TableCellHead key="piName">
+              Program Indicator <SortButton handleClick={() => sortByColumn('piName')} />
+            </TableCellHead>
             <TableCellHead key="edit"></TableCellHead>
             <TableCellHead key="status"></TableCellHead>
           </TableRowHead>
         </TableHead>
         <TableBody>
           {Object.keys(dePiMaps).length > 0 &&
-            Object.entries(dePiMaps).map(([key, { dsName, deName, piName }]) => (
-              <Row
-                key={key}
-                dsName={dsName}
-                deName={deName}
-                piName={piName}
-                rowId={key}
-                handleClick={handleRowClick}
-                generateMapping={generateMapping}
-                handleDelete={onDelete}
-                loading={rowsLoading[key]}
-                rowSelected={rowsSelected[key]}
-                selectRow={handleSelectRow}
-              />
-            ))}
+            orderedRowIds.map((key) => {
+              const { dsName, deName, piName } = dePiMaps[key]
+              return (
+                <Row
+                  key={key}
+                  dsName={dsName}
+                  deName={deName}
+                  piName={piName}
+                  rowId={key}
+                  handleClick={handleRowClick}
+                  generateMapping={generateMapping}
+                  handleDelete={onDelete}
+                  loading={rowsLoading[key]}
+                  rowSelected={rowsSelected[key]}
+                  selectRow={handleSelectRow}
+                />
+              )
+            })}
         </TableBody>
         <TableFoot>
           <TableRow>
