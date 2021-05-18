@@ -1,15 +1,29 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Button, ButtonStrip, TableRow, TableCell, CircularLoader } from '@dhis2/ui'
+import { Button, ButtonStrip, Checkbox, TableRow, TableCell, CircularLoader } from '@dhis2/ui'
 
 const loaderTd = {
   width: '60px',
   height: '50px',
 }
 
-const Row = ({ dsName, deName, piName, rowId, handleClick, generateMapping, handleDelete, loading }) => {
+const Row = ({
+  dsName,
+  deName,
+  piName,
+  rowId,
+  handleClick,
+  generateMapping,
+  handleDelete,
+  loading,
+  rowSelected,
+  selectRow,
+}) => {
   return (
     <TableRow key={rowId}>
+      <TableCell>
+        <Checkbox checked={rowSelected} onChange={(e) => selectRow(rowId)} />
+      </TableCell>
       <TableCell key={`${rowId}-dsName`}>{dsName}</TableCell>
       <TableCell key={`${rowId}-deName`}>{deName}</TableCell>
       <TableCell key={`${rowId}-piName`}>{piName}</TableCell>
@@ -42,6 +56,8 @@ Row.propTypes = {
   generateMapping: PropTypes.func.isRequired,
   handleDelete: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
+  rowSelected: PropTypes.bool.isRequired,
+  selectRow: PropTypes.func,
 }
 
 export default Row

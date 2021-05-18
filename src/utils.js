@@ -54,3 +54,16 @@ export function makeUid() {
   }
   return uid
 }
+
+/**
+ * Remove key from state
+ */
+export function removeKey(obj, key) {
+  return Object.entries(obj).reduce((acc, [thisKey, value]) => {
+    if (key === thisKey) {
+      return acc
+    } else {
+      return { ...acc, [thisKey]: value }
+    }
+  }, {})
+}

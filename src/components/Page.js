@@ -11,6 +11,7 @@ import {
   TableRow,
   TableCell,
   Button,
+  Checkbox,
   AlertBar,
 } from '@dhis2/ui'
 import Row from './Row'
@@ -18,7 +19,7 @@ import Mapping from './Mapping'
 import { config } from '../consts'
 import classes from '../App.module.css'
 import generateDataMapping from '../calculateInds'
-import { makeUid, getCosFromRow } from '../utils'
+import { makeUid, getCosFromRow, removeKey } from '../utils'
 import { MappingGenerationError } from '../Errors'
 import ImportSummary from './ImportSummary'
 import ActionButtons from './ActionButtons'
@@ -74,6 +75,9 @@ const generatedMeta = {
 const Page = ({ metadata, existingConfig }) => {
   const [dePiMaps, setDePiMaps] = useState(existingConfig.dePiMaps)
   const [rowsLoading, setRowsLoading] = useState(
+    Object.keys(dePiMaps).reduce((acc, rowId) => ({ ...acc, [rowId]: false }), {})
+  )
+  const [rowsSelected, setRowsSelected] = useState(
     Object.keys(dePiMaps).reduce((acc, rowId) => ({ ...acc, [rowId]: false }), {})
   )
   const [coMaps, setCoMap] = useState(existingConfig.coMaps)
@@ -136,14 +140,10 @@ const Page = ({ metadata, existingConfig }) => {
     const delPis = generatedPis.filter((pi) => pi.description.includes(rowId))
     const delInds = generatedInds.filter((ind) => ind.description.includes(rowId))
     const delIndGroups = generatedIndGroups.filter((indGroup) => indGroup.name.includes(rowId))
-    const newDePiMaps = Object.entries(dePiMaps).reduce((acc, [id, mapInfo]) => {
-      if (id === rowId) {
-        return acc
-      } else {
-        return { ...acc, [id]: mapInfo }
-      }
-    }, {})
+    const newDePiMaps = removeKey(dePiMaps, rowId)
     setDePiMaps(newDePiMaps)
+    setRowsLoading(removeKey(rowsLoading, rowId))
+    setRowsSelected(removeKey(rowsSelected, rowId))
     engine.mutate(dataStoreMutation, { variables: { data: { dePiMaps: newDePiMaps, coMaps: coMaps } } })
     engine.mutate(deleteMutation, {
       variables: { data: { programIndicators: delPis, indicators: delInds, indicatorGroups: delIndGroups } },
@@ -155,8 +155,8 @@ const Page = ({ metadata, existingConfig }) => {
     setShowImportStatus(true)
   }
 
-  function generateAll() {
-    const rowIds = Object.keys(dePiMaps)
+  function generateSelected() {
+    const rowIds = Object.keys(rowsSelected)
     generateMapping(rowIds)
   }
 
@@ -218,6 +218,10 @@ const Page = ({ metadata, existingConfig }) => {
     }
   }
 
+  const handleSelectRow = (rowId) => {
+    setRowsSelected({ ...rowsSelected, [rowId]: !rowsSelected[rowId] })
+  }
+
   const addRow = () => {
     const rowId = `rowId-${makeUid()}`
     const newRow = {
@@ -231,6 +235,7 @@ const Page = ({ metadata, existingConfig }) => {
       newRow: true,
     }
     setRowsLoading({ ...rowsLoading, [rowId]: false })
+    setRowsSelected({ ...rowsSelected, [rowId]: false })
     setDePiMaps({ ...dePiMaps, [rowId]: newRow })
   }
 
@@ -259,6 +264,7 @@ const Page = ({ metadata, existingConfig }) => {
       <Table>
         <TableHead>
           <TableRowHead>
+            <TableCellHead key="selected"></TableCellHead>
             <TableCellHead key="dsName">Data Set</TableCellHead>
             <TableCellHead key="deName">Data Element</TableCellHead>
             <TableCellHead key="piName">Program Indicator</TableCellHead>
@@ -279,6 +285,8 @@ const Page = ({ metadata, existingConfig }) => {
                 generateMapping={generateMapping}
                 handleDelete={onDelete}
                 loading={rowsLoading[key]}
+                rowSelected={rowsSelected[key]}
+                selectRow={handleSelectRow}
               />
             ))}
         </TableBody>
@@ -297,7 +305,7 @@ const Page = ({ metadata, existingConfig }) => {
           {warning}
         </AlertBar>
       )}
-      <ActionButtons addRow={addRow} generateAll={generateAll} />
+      <ActionButtons addRow={addRow} generateSelected={generateSelected} />
     </div>
   )
 }
