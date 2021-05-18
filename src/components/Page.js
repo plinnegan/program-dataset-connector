@@ -80,6 +80,7 @@ const Page = ({ metadata, existingConfig }) => {
   const [rowsSelected, setRowsSelected] = useState(
     Object.keys(dePiMaps).reduce((acc, rowId) => ({ ...acc, [rowId]: false }), {})
   )
+  const [allRowsSelected, setAllRowsSelected] = useState(false)
   const [coMaps, setCoMap] = useState(existingConfig.coMaps)
   const [showModal, setShowModal] = useState(false)
   const [showImportStatus, setShowImportStatus] = useState(false)
@@ -222,6 +223,15 @@ const Page = ({ metadata, existingConfig }) => {
     setRowsSelected({ ...rowsSelected, [rowId]: !rowsSelected[rowId] })
   }
 
+  const handleAllRowsSelected = () => {
+    const newRowsSelected = {}
+    for (rowId in rowsSelected) {
+      newRowsSelected[rowId] = !allRowsSelected
+    }
+    setRowsSelected(newRowsSelected)
+    setAllRowsSelected(!allRowsSelected)
+  }
+
   const addRow = () => {
     const rowId = `rowId-${makeUid()}`
     const newRow = {
@@ -264,7 +274,9 @@ const Page = ({ metadata, existingConfig }) => {
       <Table>
         <TableHead>
           <TableRowHead>
-            <TableCellHead key="selected"></TableCellHead>
+            <TableCellHead key="selected">
+              <Checkbox checked={allRowsSelected} onChange={handleAllRowsSelected} />
+            </TableCellHead>
             <TableCellHead key="dsName">Data Set</TableCellHead>
             <TableCellHead key="deName">Data Element</TableCellHead>
             <TableCellHead key="piName">Program Indicator</TableCellHead>
