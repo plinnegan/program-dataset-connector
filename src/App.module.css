@@ -44,3 +44,8 @@
   border-bottom-width: 2px;
   border-right-width: 2px;
 }
+
+.filterInput {
+  margin-right: auto;
+  padding-bottom: 10px;
+}

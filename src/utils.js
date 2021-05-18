@@ -94,3 +94,26 @@ export function sortByKeyValue(obj, key) {
   }
   return result
 }
+
+/**
+ * Return only the rowIds of the mappings which contain the given string
+ * @param {Object} dePiMaps Object holding all mappings
+ * @param {String} text Test string to filter on
+ */
+export function filterRowsByText(dePiMaps, orderedRowIds, text) {
+  if (text === '') {
+    return orderedRowIds
+  }
+  const textLower = text.toLocaleLowerCase()
+  const result = []
+  for (rowId of orderedRowIds) {
+    const { dsName, deName, piName } = dePiMaps[rowId]
+    const dsLower = dsName.toLocaleLowerCase()
+    const deLower = deName.toLocaleLowerCase()
+    const piLower = piName.toLocaleLowerCase()
+    if (dsLower.includes(textLower) || deLower.includes(textLower) || piLower.includes(textLower)) {
+      result.push(rowId)
+    }
+  }
+  return result
+}

@@ -12,6 +12,7 @@ import {
   TableCell,
   Button,
   Checkbox,
+  InputField,
   AlertBar,
 } from '@dhis2/ui'
 import Row from './Row'
@@ -19,7 +20,7 @@ import Mapping from './Mapping'
 import { config } from '../consts'
 import classes from '../App.module.css'
 import generateDataMapping from '../calculateInds'
-import { makeUid, getCosFromRow, removeKey, sortByKeyValue } from '../utils'
+import { makeUid, getCosFromRow, removeKey, sortByKeyValue, filterRowsByText } from '../utils'
 import { MappingGenerationError } from '../Errors'
 import ImportSummary from './ImportSummary'
 import ActionButtons from './ActionButtons'
@@ -76,6 +77,8 @@ const generatedMeta = {
 const Page = ({ metadata, existingConfig }) => {
   const [dePiMaps, setDePiMaps] = useState(existingConfig.dePiMaps)
   const [orderedRowIds, setOrderedRowIds] = useState(Object.keys(dePiMaps))
+  const [filteredRowIds, setFilteredRowIds] = useState(orderedRowIds)
+  const [filterText, setFilterText] = useState('')
   const [rowsLoading, setRowsLoading] = useState(
     Object.keys(dePiMaps).reduce((acc, rowId) => ({ ...acc, [rowId]: false }), {})
   )
@@ -98,7 +101,12 @@ const Page = ({ metadata, existingConfig }) => {
     if (newRows.length > 0) {
       handleRowClick(newRows[0].rowId)
     }
+    setOrderedRowIds(Object.keys(dePiMaps))
   }, [dePiMaps])
+
+  useEffect(() => {
+    setFilteredRowIds(filterRowsByText(dePiMaps, orderedRowIds, filterText))
+  }, [orderedRowIds])
 
   const handleRowClick = (rowId) => {
     setSelectedRowData(dePiMaps[rowId])
@@ -160,7 +168,10 @@ const Page = ({ metadata, existingConfig }) => {
 
   function generateSelected() {
     const rowIds = Object.keys(rowsSelected)
-    generateMapping(rowIds)
+    if (rowIds.length) {
+      generateMapping(rowIds)
+    } else {
+    }
   }
 
   const generateMapping = (rowIds) => {
@@ -255,6 +266,11 @@ const Page = ({ metadata, existingConfig }) => {
     setOrderedRowIds(sortByKeyValue(dePiMaps, columnProp))
   }
 
+  const handleFilterChange = (e) => {
+    setFilterText(e.value)
+    setFilteredRowIds(filterRowsByText(dePiMaps, orderedRowIds, e.value))
+  }
+
   return (
     <div className={classes.pageDiv}>
       <h1>Event to Aggregate Mappings</h1>
@@ -277,6 +293,13 @@ const Page = ({ metadata, existingConfig }) => {
       {showImportStatus && (
         <ImportSummary handleClose={() => setShowImportStatus(false)} importResults={importResults} />
       )}
+      <InputField
+        className={classes.filterInput}
+        label="Filter"
+        name="filter"
+        value={filterText}
+        onChange={(e) => handleFilterChange(e)}
+      />
       <Table>
         <TableHead>
           <TableRowHead>
@@ -298,7 +321,10 @@ const Page = ({ metadata, existingConfig }) => {
         </TableHead>
         <TableBody>
           {Object.keys(dePiMaps).length > 0 &&
-            orderedRowIds.map((key) => {
+            filteredRowIds.map((key) => {
+              if (!(key in dePiMaps)) {
+                return
+              }
               const { dsName, deName, piName } = dePiMaps[key]
               return (
                 <Row
