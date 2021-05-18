@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import { useDataEngine, useDataQuery } from '@dhis2/app-runtime'
+import { useDataEngine, useDataQuery, useAlert } from '@dhis2/app-runtime'
 import {
   Table,
   TableHead,
@@ -94,6 +94,7 @@ const Page = ({ metadata, existingConfig }) => {
   const { loading, data: generatedMetadata, refetch } = useDataQuery(generatedMeta)
   const [showWarning, setShowWarning] = useState(false)
   const [warning, setWarning] = useState('')
+  const { show: showNoSelectedWarning } = useAlert('Please select at least one row to continue', { warning: true })
   const engine = useDataEngine()
 
   useEffect(() => {
@@ -167,10 +168,11 @@ const Page = ({ metadata, existingConfig }) => {
   }
 
   function generateSelected() {
-    const rowIds = Object.keys(rowsSelected)
+    const rowIds = Object.keys(rowsSelected).filter((rowId) => rowsSelected[rowId])
     if (rowIds.length) {
       generateMapping(rowIds)
     } else {
+      showNoSelectedWarning()
     }
   }
 

@@ -9,8 +9,6 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
   const [rowData, setRowData] = useState(rowDataIn)
   const [coMappings, setCoMappings] = useState({})
   const [availableDes, setAvailableDes] = useState(metadata.dataElements.dataElements)
-  console.log(metadata)
-
   const disableSave = [rowData.dsUid, rowData.deUid, rowData.piUid].includes('')
 
   useEffect(() => {
