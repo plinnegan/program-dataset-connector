@@ -1,11 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Button, ButtonStrip, Checkbox, TableRow, TableCell, CircularLoader } from '@dhis2/ui'
-
-const loaderTd = {
-  width: '60px',
-  height: '50px',
-}
+import classes from '../App.module.css'
 
 const Row = ({
   dsName,
@@ -24,10 +20,12 @@ const Row = ({
       <TableCell>
         <Checkbox checked={rowSelected} onChange={(e) => selectRow(rowId)} />
       </TableCell>
+      <TableCell key={`${rowId}-id`}>{rowId}</TableCell>
       <TableCell key={`${rowId}-dsName`}>{dsName}</TableCell>
       <TableCell key={`${rowId}-deName`}>{deName}</TableCell>
       <TableCell key={`${rowId}-piName`}>{piName}</TableCell>
-      <TableCell key={`${rowId}-edit`}>
+
+      <TableCell className={classes.actionTd} key={`${rowId}-edit`}>
         <ButtonStrip>
           <Button disabled={loading} secondary onClick={(e) => handleClick(rowId)}>
             Edit
@@ -40,8 +38,8 @@ const Row = ({
           </Button>
         </ButtonStrip>
       </TableCell>
-      <TableCell>
-        <div style={loaderTd}>{loading && <CircularLoader small />}</div>
+      <TableCell className={classes.loaderTd}>
+        <div className={classes.loaderDiv}>{loading && <CircularLoader small />}</div>
       </TableCell>
     </TableRow>
   )

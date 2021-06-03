@@ -53,3 +53,15 @@
 .dataTable {
   width: 90vw;
 }
+
+.loaderTd {
+  width: 80px;
+}
+
+.actionTd {
+  width: 15%;
+}
+
+.loaderDiv {
+  height: 50px;
+}

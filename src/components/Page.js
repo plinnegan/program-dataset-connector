@@ -309,6 +309,7 @@ const Page = ({ metadata, existingConfig }) => {
             <TableCellHead key="selected">
               <Checkbox checked={allRowsSelected} onChange={handleAllRowsSelected} />
             </TableCellHead>
+            <TableCellHead key="rowId">Row ID</TableCellHead>
             <TableCellHead key="dsName">
               Data Set <SortButton handleClick={() => sortByColumn('dsName')} />
             </TableCellHead>
