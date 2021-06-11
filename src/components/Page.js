@@ -51,7 +51,7 @@ const generatedMeta = {
   generatedPis: {
     resource: 'programIndicators',
     params: {
-      filter: 'name:like:(generated)',
+      filter: 'name:like:rowId-',
       fields: 'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
       paging: 'false',
     },
@@ -59,7 +59,7 @@ const generatedMeta = {
   generatedInds: {
     resource: 'indicators',
     params: {
-      filter: 'name:like:(generated)',
+      filter: 'name:like:rowId-',
       fields: 'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
       paging: 'false',
     },
