@@ -1,9 +1,10 @@
 const config = {
-    type: 'app',
-
-    entryPoints: {
-        app: './src/App',
-    },
+  type: 'app',
+  name: 'PDAC',
+  title: 'Program DataSet Connector',
+  entryPoints: {
+    app: './src/App',
+  },
 }
 
 module.exports = config
