@@ -67,7 +67,7 @@ const generatedMeta = {
   generatedIndGroups: {
     resource: 'indicatorGroups',
     params: {
-      filter: 'name:like:(generated)',
+      filter: 'name:like:rowId-',
       fields: 'id,name',
       paging: 'false',
     },

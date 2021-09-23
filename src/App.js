@@ -27,7 +27,11 @@ const query = {
   },
   programIndicators: {
     resource: 'programIndicators',
-    params: { filter: 'name:!like:rowId-', fields: ':owner', paging: 'false' },
+    params: {
+      filter: ['name:!like:rowId-', 'name:!like:(generated)', 'name:!$like:zzDel'],
+      fields: ':owner',
+      paging: 'false',
+    },
   },
   dataStore: {
     resource: 'dataStore',

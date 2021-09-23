@@ -72,7 +72,7 @@ function combineFilters(baseFilter, dsFilters, deFilters) {
 function createPiJSON(rowId, pi, deUid, filters, combinedUid) {
   const pis = []
   for (const { cocUid, aocUid, filter, suffix } of filters.values()) {
-    const snUnique = `${aocUid.slice(0, 3)}-${cocUid.slice(0, 3)}-${combinedUid}`
+    const snUnique = `${aocUid}-${cocUid}-${combinedUid}`
     const newPi = JSON.parse(JSON.stringify(pi))
     for (const apb of newPi.analyticsPeriodBoundaries) {
       delete apb.id
@@ -154,9 +154,7 @@ function generateInd(indUid, piSource, indTypeUid) {
 }
 
 function calculateIndGroup(rowId, generatedIndGroups, createUpdateInds) {
-  const IndGroups = generatedIndGroups.filter((indGroup) =>
-    indGroup.name.includes(`indMappingGroup-${rowId} (generated)`)
-  )
+  const IndGroups = generatedIndGroups.filter((indGroup) => indGroup.name.includes(`indMappingGroup-${rowId}`))
   let indGroup
   if (IndGroups.length) {
     indGroup = IndGroups[0]
