@@ -8,7 +8,7 @@ const noCoStyle = {
   paddingBottom: '20px',
 }
 
-const CoFilters = ({ coMappings, setCoMappings }) => {
+const CoFilters = ({ rowData, setRowData, coMappings, setCoMappings }) => {
   const coUids = Object.keys(coMappings)
   return (
     <>
@@ -23,16 +23,21 @@ const CoFilters = ({ coMappings, setCoMappings }) => {
             </TableRowHead>
           </TableHead>
           <TableBody>
-            {Object.entries(coMappings).map(([key, { name, filter }]) => (
-              <RowCatFilter
-                key={key}
-                rowId={key}
-                catName={name}
-                catFilter={filter}
-                coMappings={coMappings}
-                handleClick={setCoMappings}
-              />
-            ))}
+            {Object.entries(coMappings).map(([coUid, { name, filter }]) => {
+              const rowCoFilter = rowData?.coFilters?.[coUid]?.filter
+              return (
+                <RowCatFilter
+                  key={coUid}
+                  coUid={coUid}
+                  catName={name}
+                  catFilter={rowCoFilter ? rowCoFilter : filter}
+                  coMappings={coMappings}
+                  rowData={rowData}
+                  setRowData={setRowData}
+                  handleClick={setCoMappings}
+                />
+              )
+            })}
           </TableBody>
         </Table>
       )}
@@ -41,6 +46,16 @@ const CoFilters = ({ coMappings, setCoMappings }) => {
 }
 
 CoFilters.propTypes = {
+  rowData: PropTypes.shape({
+    deUid: PropTypes.string.isRequired,
+    dsUid: PropTypes.string.isRequired,
+    piUid: PropTypes.string.isRequired,
+    rowId: PropTypes.string.isRequired,
+    deName: PropTypes.string.isRequired,
+    dsName: PropTypes.string.isRequired,
+    piName: PropTypes.string.isRequired,
+  }).isRequired,
+  setRowData: PropTypes.func.isRequired,
   coMappings: PropTypes.objectOf(
     PropTypes.shape({ name: PropTypes.string.isRequired, filter: PropTypes.string.isRequired })
   ).isRequired,

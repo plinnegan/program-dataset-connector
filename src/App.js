@@ -73,7 +73,9 @@ const attrMutation = {
 const MyApp = () => {
   const { loading, error, data: metadata } = useDataQuery(query)
   const [dataStoreSetup, setDataStoreSetup] = useState(false)
-  const [mutateDataStore] = useDataMutation(dataStoreMutation, { onComplete: () => setDataStoreSetup(true) })
+  const [mutateDataStore] = useDataMutation(dataStoreMutation, {
+    onComplete: () => setDataStoreSetup(true),
+  })
   const [mutateAttribute] = useDataMutation(attrMutation)
   const [mutateIndType] = useDataMutation(indTypeMutation)
   const { dataStoreName } = config

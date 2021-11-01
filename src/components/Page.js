@@ -89,12 +89,17 @@ const Page = ({ metadata, existingConfig }) => {
   const [coMaps, setCoMap] = useState(existingConfig.coMaps)
   const [showModal, setShowModal] = useState(false)
   const [showImportStatus, setShowImportStatus] = useState(false)
-  const [importResults, setImportResults] = useState({ success: null, message: 'Import not complete' })
+  const [importResults, setImportResults] = useState({
+    success: null,
+    message: 'Import not complete',
+  })
   const [selectedRowData, setSelectedRowData] = useState({})
   const { loading, data: generatedMetadata, refetch } = useDataQuery(generatedMeta)
   const [showWarning, setShowWarning] = useState(false)
   const [warning, setWarning] = useState('')
-  const { show: showNoSelectedWarning } = useAlert('Please select at least one row to continue', { warning: true })
+  const { show: showNoSelectedWarning } = useAlert('Please select at least one row to continue', {
+    warning: true,
+  })
   const engine = useDataEngine()
 
   useEffect(() => {
@@ -156,9 +161,13 @@ const Page = ({ metadata, existingConfig }) => {
     setDePiMaps(newDePiMaps)
     setRowsLoading(removeKey(rowsLoading, rowId))
     setRowsSelected(removeKey(rowsSelected, rowId))
-    engine.mutate(dataStoreMutation, { variables: { data: { dePiMaps: newDePiMaps, coMaps: coMaps } } })
+    engine.mutate(dataStoreMutation, {
+      variables: { data: { dePiMaps: newDePiMaps, coMaps: coMaps } },
+    })
     engine.mutate(deleteMutation, {
-      variables: { data: { programIndicators: delPis, indicators: delInds, indicatorGroups: delIndGroups } },
+      variables: {
+        data: { programIndicators: delPis, indicators: delInds, indicatorGroups: delIndGroups },
+      },
     })
   }
 
@@ -179,9 +188,10 @@ const Page = ({ metadata, existingConfig }) => {
   const generateMapping = (rowIds) => {
     const multiRowUpdate = Array.isArray(rowIds)
     const rowId = multiRowUpdate ? rowIds.shift() : rowIds
-    const { dsUid, deUid, piUid } = dePiMaps[rowId]
+    const { dsUid, deUid, piUid, coFilters: coRowFilters } = dePiMaps[rowId]
+    const coFilters = { ...coMaps, ...coRowFilters }
     setRowsLoading({ ...rowsLoading, [rowId]: true })
-    const rowCoMapping = getCosFromRow(dsUid, deUid, metadata, coMaps)
+    const rowCoMapping = getCosFromRow(dsUid, deUid, metadata, coFilters)
     const rowFilters = Object.values(rowCoMapping).reduce((acc, { filter }) => [...acc, filter], [])
     if (rowFilters.includes('')) {
       setWarning('Cannot generate PIs, missing filters')
@@ -190,7 +200,7 @@ const Page = ({ metadata, existingConfig }) => {
       return
     }
     try {
-      const results = generateDataMapping(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedMetadata)
+      const results = generateDataMapping(rowId, dsUid, deUid, piUid, coFilters, metadata, generatedMetadata)
       if (results.needsDelete) {
         engine.mutate(deleteMutation, {
           variables: { data: results.deleteMetadata },

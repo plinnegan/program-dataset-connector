@@ -59,7 +59,7 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
         />
         <br />
         <br />
-        <CoFilters coMappings={coMappings} setCoMappings={setCoMappings} />
+        <CoFilters rowData={rowData} setRowData={setRowData} coMappings={coMappings} setCoMappings={setCoMappings} />
       </ModalContent>
       <ModalActions>
         <ButtonStrip>

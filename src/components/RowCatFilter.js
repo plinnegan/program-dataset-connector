@@ -2,29 +2,34 @@ import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { Button, TableRow, TableCell, InputField } from '@dhis2/ui'
 
-const RowCatFilter = ({ rowId, catName, catFilter, coMappings, handleClick }) => {
+const RowCatFilter = ({ coUid, catName, catFilter, coMappings, rowData, setRowData, handleClick }) => {
   const [rowFilter, setRowFilter] = useState(catFilter)
   const [saved, setSaved] = useState(false)
+  const coFilters = rowData?.coFilters ? rowData.coFilters : {}
 
   const saveFilter = (e) => {
+    setRowData({
+      ...rowData,
+      coFilters: { ...coFilters, [coUid]: { name: catName, filter: rowFilter } },
+    })
     setSaved(true)
-    handleClick({ ...coMappings, [rowId]: { name: catName, filter: rowFilter } })
+    handleClick({ ...coMappings, [coUid]: { name: catName, filter: rowFilter } })
   }
 
   return (
     <TableRow>
-      <TableCell key={`${rowId}-name`}>{catName}</TableCell>
-      <TableCell key={`${rowId}-filter`}>
+      <TableCell key={`${coUid}-name`}>{catName}</TableCell>
+      <TableCell key={`${coUid}-filter`}>
         <InputField
           valid={saved}
           label=""
           inputWidth="450px"
-          name={`${rowId}-filter`}
+          name={`${coUid}-filter`}
           value={rowFilter}
           onChange={(e) => setRowFilter(e.value)}
         />
       </TableCell>
-      <TableCell key={`${rowId}-save`}>
+      <TableCell key={`${coUid}-save`}>
         <Button primary onClick={(e) => saveFilter(e)}>
           Update
         </Button>
@@ -34,7 +39,7 @@ const RowCatFilter = ({ rowId, catName, catFilter, coMappings, handleClick }) =>
 }
 
 RowCatFilter.propTypes = {
-  rowId: PropTypes.string.isRequired,
+  coUid: PropTypes.string.isRequired,
   catName: PropTypes.string.isRequired,
   catFilter: PropTypes.string.isRequired,
   coMappings: PropTypes.objectOf(
