@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useDataQuery } from '@dhis2/app-runtime'
 import { config } from '../consts'
@@ -14,12 +14,39 @@ const dataStoreQuery = {
 
 const ConnectDataStore = ({ metadata }) => {
   const { loading, error, data } = useDataQuery(dataStoreQuery)
+  const [dataStoreUpdated, setDataStoreUpdated] = useState(false)
+
+  useEffect(() => {
+    const dePiMaps = data?.dataStore?.dePiMaps
+    if (dePiMaps && Object.keys(dePiMaps).length > 0) {
+      const dsUidNameMap = metadata.dataSets.dataSets.reduce((acc, { id, name }) => ({ ...acc, [id]: name }), {})
+      const deUidNameMap = metadata.dataElements.dataElements.reduce(
+        (acc, { id, name }) => ({ ...acc, [id]: name }),
+        {}
+      )
+      const piUidNameMap = metadata.programIndicators.programIndicators.reduce(
+        (acc, { id, name }) => ({ ...acc, [id]: name }),
+        {}
+      )
+      const dePiMapsUpdated = {}
+      for ({ rowId, dsUid, deUid, piUid } of Object.values(dePiMaps)) {
+        dePiMapsUpdated[rowId] = {
+          ...dePiMaps[rowId],
+          dsName: dsUidNameMap[dsUid],
+          deName: deUidNameMap[deUid],
+          piName: piUidNameMap[piUid],
+        }
+      }
+      data.dataStore.dePiMaps = dePiMapsUpdated
+      setDataStoreUpdated(true)
+    }
+  }, [data])
 
   return (
     <>
-      {loading && <Loader>Loading existing configuration...</Loader>}
+      {(loading || !dataStoreUpdated) && <Loader>Loading existing configuration...</Loader>}
       {error && <Error>Error {error.message}</Error>}
-      {data && <Page metadata={metadata} existingConfig={data.dataStore} />}
+      {data && dataStoreUpdated && <Page metadata={metadata} existingConfig={data.dataStore} />}
     </>
   )
 }
