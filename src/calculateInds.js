@@ -1,4 +1,4 @@
-import { makeUid } from './utils'
+import { makeUid, orderCos } from './utils'
 import { config } from './consts'
 import { MappingGenerationError } from './Errors'
 
@@ -25,7 +25,8 @@ function getBaseFilter(piUid, allPis) {
 }
 
 function getFilters(metaItem, coMaps) {
-  const cocs = metaItem.categoryCombo.categoryOptionCombos
+  const rawCocs = metaItem.categoryCombo.categoryOptionCombos
+  const cocs = rawCocs.map((coc) => orderCos(coc))
   const result = []
   for (const coc of cocs) {
     let cocFilter = ''

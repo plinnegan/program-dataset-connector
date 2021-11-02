@@ -11,7 +11,6 @@ export function getCosFromMetadata(metadata, coMaps) {
   )
   const withoutDefault = cos.filter(({ name }) => name !== 'default')
   const coMapList = withoutDefault.map(({ uid, name }) => {
-    console.log('CO Name: ', name)
     if (uid in coMaps) {
       return { [uid]: { ...coMaps[uid], name: name } }
     } else {
@@ -121,4 +120,19 @@ export function filterRowsByText(dePiMaps, orderedRowIds, text) {
     }
   }
   return result
+}
+
+/**
+ *
+ * @param {Object} coc Object representing a category option combo in the system
+ * @returns {Object} Object representing a COC, but with the category options sorted
+ */
+export function orderCos(coc) {
+  const { name, id, categoryOptions } = coc
+  const indexes = {}
+  for (const co of categoryOptions) {
+    indexes[name.indexOf(co.name)] = co // Store each co name by it's location in the coc name
+  }
+  // Use the fact that js auto orders numerical keys in objects to sort automatically
+  return { id, name, categoryOptions: Object.values(indexes) }
 }
