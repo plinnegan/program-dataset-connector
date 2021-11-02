@@ -10,9 +10,14 @@ export function getCosFromMetadata(metadata, coMaps) {
     []
   )
   const withoutDefault = cos.filter(({ name }) => name !== 'default')
-  const coMapList = withoutDefault.map(({ uid, name }) =>
-    uid in coMaps ? { [uid]: coMaps[uid] } : { [uid]: { name: name, filter: '' } }
-  )
+  const coMapList = withoutDefault.map(({ uid, name }) => {
+    console.log('CO Name: ', name)
+    if (uid in coMaps) {
+      return { [uid]: { ...coMaps[uid], name: name } }
+    } else {
+      return { [uid]: { name: name, filter: '' } }
+    }
+  })
   return coMapList.reduce((acc, curr) => {
     return { ...acc, ...curr }
   }, {})
