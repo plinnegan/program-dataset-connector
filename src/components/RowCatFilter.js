@@ -15,7 +15,7 @@ const RowCatFilter = ({
 }) => {
   const [rowFilter, setRowFilter] = useState(catFilter)
   const [filterError, setFilterError] = useState('')
-  const { appUrl } = useConfig()
+  const { baseUrl: appUrl } = useConfig()
   const baseUrl = getBaseUrl(appUrl)
   const coFilters = rowData?.coFilters ? rowData.coFilters : {}
 
