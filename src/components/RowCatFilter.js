@@ -39,8 +39,8 @@ const RowCatFilter = ({
           return result.json()
         })
         .then(data => {
-          const { message, description } = data
-          if (message !== 'Valid') {
+          const { status, description } = data
+          if (status !== 'OK') {
             setFilterError(description)
           } else {
             setFilterError('')
