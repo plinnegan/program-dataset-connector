@@ -31,14 +31,20 @@ function getFilters(metaItem, coMaps) {
   for (const coc of cocs) {
     let cocFilter = ''
     let cocSuffix = ''
+    let skipCoc = false
     for (const co of coc.categoryOptions) {
-      if (co.name === 'default') continue
+      if (co.name === 'default') {
+        continue
+      } else if (!(co.id in coMaps)) {
+        throw new MappingGenerationError(
+          'Found a category option combo which cannot be constructed from the assigned categories, this typically means the COCs on the data element or data set need updating to align with the categories'
+        )
+      } else if (coMaps[co.id].filter === '') {
+        console.log(`Skipping coc ${coc.name} because co filter ${co.name} is blank`)
+        skipCoc = true
+        break
+      }
       if (cocFilter === '') {
-        if (!(co.id in coMaps)) {
-          throw new MappingGenerationError(
-            'Found a category option combo which cannot be constructed from the assigned categories, this typically means the COCs on the data element or data set need updating to align with the categories'
-          )
-        }
         cocFilter = `(${coMaps[co.id].filter})`
         cocSuffix = ` (${co.name})`
       } else {
@@ -46,8 +52,11 @@ function getFilters(metaItem, coMaps) {
         cocSuffix = `${cocSuffix} (${co.name})`
       }
     }
-    result.push({ cocUid: coc.id, filter: cocFilter, suffix: cocSuffix })
+    if (!skipCoc) {
+      result.push({ cocUid: coc.id, filter: cocFilter, suffix: cocSuffix })
+    }
   }
+  console.log('getFilters result: ', result)
   return result
 }
 

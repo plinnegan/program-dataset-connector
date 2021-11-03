@@ -193,12 +193,6 @@ const Page = ({ metadata, existingConfig }) => {
     setRowsLoading({ ...rowsLoading, [rowId]: true })
     const rowCoMapping = getCosFromRow(dsUid, deUid, metadata, coFilters)
     const rowFilters = Object.values(rowCoMapping).reduce((acc, { filter }) => [...acc, filter], [])
-    if (rowFilters.includes('')) {
-      setWarning('Cannot generate PIs, missing filters')
-      setShowWarning(true)
-      setRowsLoading({ ...rowsLoading, [rowId]: false })
-      return
-    }
     try {
       const results = generateDataMapping(rowId, dsUid, deUid, piUid, coFilters, metadata, generatedMetadata)
       if (results.needsDelete) {
