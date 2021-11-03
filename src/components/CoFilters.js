@@ -19,7 +19,6 @@ const CoFilters = ({ rowData, setRowData, coMappings, setCoMappings }) => {
             <TableRowHead>
               <TableCellHead key="catName">Category Option Name</TableCellHead>
               <TableCellHead key="catFilter">Filter</TableCellHead>
-              <TableCellHead key="save"></TableCellHead>
             </TableRowHead>
           </TableHead>
           <TableBody>

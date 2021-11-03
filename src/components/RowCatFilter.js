@@ -1,19 +1,53 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
+import { useConfig } from '@dhis2/app-runtime'
+import { getBaseUrl } from '../utils'
 import { Button, TableRow, TableCell, InputField } from '@dhis2/ui'
 
 const RowCatFilter = ({ coUid, catName, catFilter, coMappings, rowData, setRowData, handleClick }) => {
   const [rowFilter, setRowFilter] = useState(catFilter)
-  const [saved, setSaved] = useState(false)
+  const [filterError, setFilterError] = useState('')
+  const { appUrl } = useConfig()
+  const baseUrl = getBaseUrl(appUrl)
   const coFilters = rowData?.coFilters ? rowData.coFilters : {}
 
-  const saveFilter = (e) => {
+  const handleFilterChange = (filterText) => {
+    setRowFilter(filterText)
+    if (filterText.length === 0) {
+      setFilterError('')
+    } else {
+      fetch(`${baseUrl}/api/programIndicators/filter/description`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+        body: filterText,
+      })
+        .then((result) => {
+          return result.json()
+        })
+        .catch((err) => {
+          console.log('Error checking PI filter')
+        })
+        .then((data) => {
+          const { message, description } = data
+          if (message !== 'Valid') {
+            setFilterError(description)
+          } else {
+            setFilterError('')
+          }
+        })
+        .catch((err) => {
+          console.log('Error checking PI filter')
+        })
+    }
+    console.log(`Updating filter: ${filterText}`)
     setRowData({
       ...rowData,
-      coFilters: { ...coFilters, [coUid]: { name: catName, filter: rowFilter } },
+      coFilters: { ...coFilters, [coUid]: { name: catName, filter: filterText } },
     })
-    setSaved(true)
-    handleClick({ ...coMappings, [coUid]: { name: catName, filter: rowFilter } })
+    handleClick({ ...coMappings, [coUid]: { name: catName, filter: filterText } })
   }
 
   return (
@@ -21,18 +55,14 @@ const RowCatFilter = ({ coUid, catName, catFilter, coMappings, rowData, setRowDa
       <TableCell key={`${coUid}-name`}>{catName}</TableCell>
       <TableCell key={`${coUid}-filter`}>
         <InputField
-          valid={saved}
           label=""
-          inputWidth="450px"
+          inputWidth="500px"
           name={`${coUid}-filter`}
           value={rowFilter}
-          onChange={(e) => setRowFilter(e.value)}
+          error={filterError.length > 0}
+          validationText={filterError}
+          onChange={(e) => handleFilterChange(e.value)}
         />
-      </TableCell>
-      <TableCell key={`${coUid}-save`}>
-        <Button primary onClick={(e) => saveFilter(e)}>
-          Update
-        </Button>
       </TableCell>
     </TableRow>
   )

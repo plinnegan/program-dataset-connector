@@ -123,7 +123,7 @@ export function filterRowsByText(dePiMaps, orderedRowIds, text) {
 }
 
 /**
- *
+ * Order COs in COC to match order in COC name
  * @param {Object} coc Object representing a category option combo in the system
  * @returns {Object} Object representing a COC, but with the category options sorted
  */
@@ -135,4 +135,17 @@ export function orderCos(coc) {
   }
   // Use the fact that js auto orders numerical keys in objects to sort automatically
   return { id, name, categoryOptions: Object.values(indexes) }
+}
+
+/**
+ * Get the base url to use for custom requests
+ * @param {String} appUrl Url the app is currently running on
+ * @returns {String} Url ro use for api requests
+ */
+export function getBaseUrl(appUrl) {
+  if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+    return 'http://localhost:8080'
+  } else {
+    return appUrl
+  }
 }
