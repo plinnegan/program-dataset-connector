@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
-import PropTypes from 'prop-types'
 import { Modal, ModalTitle, ModalContent, ModalActions, ButtonStrip, Button } from '@dhis2/ui'
+import PropTypes from 'prop-types'
+import React, { useState, useEffect } from 'react'
 import { getCosFromRow } from '../utils'
-import RowFieldSelect from './RowFieldSelect'
 import CoFilters from './CoFilters'
+import RowFieldSelect from './RowFieldSelect'
 
 const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => {
   const [rowData, setRowData] = useState(rowDataIn)
@@ -15,13 +15,13 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
     setCoMappings(getCosFromRow(rowData.dsUid, rowData.deUid, metadata, coMaps))
   }, [rowData.deUid, rowData.dsUid])
 
-  const handleDsSelect = (rowData) => {
+  const handleDsSelect = rowData => {
     const dss = metadata.dataSets.dataSets
     const des = metadata.dataElements.dataElements
-    const ds = dss.filter((ds) => ds.id === rowData.dsUid)[0]
-    const selectedDe = des.filter((de) => de.id === rowData.deUid)[0]
-    const filteredDeUids = ds.dataSetElements.map((dse) => dse.dataElement.id)
-    const deOpts = des.filter((de) => filteredDeUids.includes(de.id))
+    const ds = dss.filter(ds => ds.id === rowData.dsUid)[0]
+    const selectedDe = des.filter(de => de.id === rowData.deUid)[0]
+    const filteredDeUids = ds.dataSetElements.map(dse => dse.dataElement.id)
+    const deOpts = des.filter(de => filteredDeUids.includes(de.id))
     if (selectedDe && !filteredDeUids.includes(selectedDe.id)) {
       rowData.deUid = ''
       rowData.deName = ''
@@ -64,7 +64,7 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
       <ModalActions>
         <ButtonStrip>
           <Button onClick={handleClose}>Close</Button>
-          <Button primary disabled={disableSave} onClick={(e) => handleUpdate(rowData, coMappings)}>
+          <Button primary disabled={disableSave} onClick={() => handleUpdate(rowData, coMappings)}>
             Save
           </Button>
         </ButtonStrip>

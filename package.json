@@ -5,13 +5,16 @@
   "license": "BSD-3-Clause",
   "private": true,
   "scripts": {
+    "lint": "d2-style check",
+    "format": "d2-style apply",
     "build": "d2-app-scripts build",
     "start": "d2-app-scripts start",
     "test": "jest",
     "deploy": "d2-app-scripts deploy"
   },
   "devDependencies": {
-    "@dhis2/cli-app-scripts": "^5.5.1"
+    "@dhis2/cli-app-scripts": "^5.5.1",
+    "@dhis2/cli-style": "^9.3.1"
   },
   "dependencies": {
     "@dhis2/app-runtime": "^2.7.0",

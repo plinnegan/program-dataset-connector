@@ -1,6 +1,6 @@
-import { makeUid, orderCos } from './utils'
 import { config } from './consts'
 import { MappingGenerationError } from './Errors'
+import { makeUid, orderCos } from './utils'
 
 class PiCalculationError extends Error {
   constructor(message) {
@@ -10,7 +10,7 @@ class PiCalculationError extends Error {
 }
 
 function getByUid(uid, metadata) {
-  const matches = metadata.filter((metaItem) => metaItem.id === uid)
+  const matches = metadata.filter(metaItem => metaItem.id === uid)
   if (matches.length === 0) {
     throw new PiCalculationError(`Could not find PI with UID ${uid} in metadata`)
   }
@@ -33,7 +33,7 @@ function getFilters(metaItem, coMaps) {
         'option combos in the admin app before attempting to generate the mapping again'
     )
   }
-  const cocs = rawCocs.map((coc) => orderCos(coc))
+  const cocs = rawCocs.map(coc => orderCos(coc))
   const result = []
   for (const coc of cocs) {
     let cocFilter = ''
@@ -44,7 +44,9 @@ function getFilters(metaItem, coMaps) {
         continue
       } else if (!(co.id in coMaps)) {
         throw new MappingGenerationError(
-          'Found a category option combo which cannot be constructed from the assigned categories, this typically means the COCs on the data element or data set need updating to align with the categories'
+          'Found a category option combo which cannot be constructed from the assigned ' +
+            'categories, this typically means the COCs on the data element or data set need ' +
+            'updating to align with the categories'
         )
       } else if (coMaps[co.id].filter === '') {
         console.log(`Skipping coc ${coc.name} because co filter ${co.name} is blank`)
@@ -73,8 +75,8 @@ function combineFilters(baseFilter, dsFilters, deFilters) {
     const { cocUid: aocUid, filter: dsFilter, suffix: dsSuffix } = dsFilterInfo
     for (const deFilterInfo of deFilters) {
       const { cocUid, filter: deFilter, suffix: deSuffix } = deFilterInfo
-      const newFilterArr = [baseFilter, dsFilter, deFilter].filter((arrItem) => arrItem !== '')
-      const newSuffixArr = [dsSuffix, deSuffix].filter((suffix) => suffix !== '(default)')
+      const newFilterArr = [baseFilter, dsFilter, deFilter].filter(arrItem => arrItem !== '')
+      const newSuffixArr = [dsSuffix, deSuffix].filter(suffix => suffix !== '(default)')
       result.push({
         cocUid,
         aocUid,
@@ -121,7 +123,7 @@ function calculatePis(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedPis
     ...metadata.dataElements,
     ...metadata.programIndicators,
   }
-  const deleteOldPis = generatedPis.filter((pi) => pi.description.includes(rowId))
+  const deleteOldPis = generatedPis.filter(pi => pi.description.includes(rowId))
   const combinedUid = `${dsUid.slice(0, 3)}-${deUid.slice(0, 3)}-${piUid.slice(0, 3)}`
   const baseFilter = getBaseFilter(piUid, programIndicators)
   const ds = getByUid(dsUid, dataSets)
@@ -135,11 +137,11 @@ function calculatePis(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedPis
   return piUpdates
 }
 
-function getMappingAttr(attributeValues) {
-  const attrVal = attributeValues.filter((attrVal) => attrVal.attribute.id === config.indCustomAttr.id)
+function getMappingAttr(piUid, attributeValues) {
+  const attrVal = attributeValues.filter(attrVal => attrVal.attribute.id === config.indCustomAttr.id)
   if (attrVal.length === 0) {
-    throw ValueError(
-      `Program indicator ${piSource.id} does not have de mapping attribute value for custom attribute ${config.indCustomAttr.id}`
+    throw new MappingGenerationError(
+      `Program indicator ${piUid.id} does not have de mapping attribute value for custom attribute ${config.indCustomAttr.id}`
     )
   } else {
     return attrVal[0].value
@@ -161,7 +163,7 @@ function generateInd(indUid, piSource, indTypeUid) {
     indicatorType: { id: indTypeUid },
     attributeValues: [
       {
-        value: getMappingAttr(piSource.attributeValues),
+        value: getMappingAttr(piSource.id, piSource.attributeValues),
         attribute: {
           id: config.indCustomAttr.id,
         },
@@ -171,7 +173,7 @@ function generateInd(indUid, piSource, indTypeUid) {
 }
 
 function calculateIndGroup(rowId, generatedIndGroups, createUpdateInds) {
-  const IndGroups = generatedIndGroups.filter((indGroup) => indGroup.name.includes(`indMappingGroup-${rowId}`))
+  const IndGroups = generatedIndGroups.filter(indGroup => indGroup.name.includes(`indMappingGroup-${rowId}`))
   let indGroup
   if (IndGroups.length) {
     indGroup = IndGroups[0]
@@ -182,7 +184,7 @@ function calculateIndGroup(rowId, generatedIndGroups, createUpdateInds) {
       id: uid,
     }
   }
-  indGroup.indicators = createUpdateInds.map((ind) => ({ id: ind.id }))
+  indGroup.indicators = createUpdateInds.map(ind => ({ id: ind.id }))
   return indGroup
 }
 
@@ -191,7 +193,7 @@ function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes) {
   const deleteInds = []
   const indTypeUid = indTypes[0].id
   for (const pi of createUpdatePis) {
-    const existingInd = generatedInds.filter((ind) => ind.description === pi.description)
+    const existingInd = generatedInds.filter(ind => ind.description === pi.description)
     let indUid
     if (existingInd.length === 0) {
       indUid = makeUid()
@@ -201,7 +203,7 @@ function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes) {
     createUpdateInds.push(generateInd(indUid, pi, indTypeUid))
   }
   for (const pi of deletePis) {
-    const existingInd = generatedInds.filter((ind) => ind.description === pi.description)
+    const existingInd = generatedInds.filter(ind => ind.description === pi.description)
     if (existingInd.length) {
       deleteInds.push({ id: existingInd[0].id })
     }

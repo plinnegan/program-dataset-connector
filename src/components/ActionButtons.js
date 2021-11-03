@@ -1,6 +1,6 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import { Button, ButtonStrip } from '@dhis2/ui'
+import PropTypes from 'prop-types'
+import React from 'react'
 import classes from '../App.module.css'
 
 const ActionButtons = ({ addRow, generateSelected }) => {

@@ -1,9 +1,9 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import { useDataQuery } from '@dhis2/app-runtime'
+import PropTypes from 'prop-types'
+import React from 'react'
 import { config } from '../consts'
-import Loader from './Loader'
 import Error from './Error'
+import Loader from './Loader'
 import Page from './Page'
 
 const dataStoreQuery = {

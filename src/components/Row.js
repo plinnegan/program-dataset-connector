@@ -1,6 +1,6 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import { Button, ButtonStrip, Checkbox, TableRow, TableCell, CircularLoader } from '@dhis2/ui'
+import PropTypes from 'prop-types'
+import React from 'react'
 import classes from '../App.module.css'
 
 const Row = ({
@@ -18,7 +18,7 @@ const Row = ({
   return (
     <TableRow key={rowId}>
       <TableCell>
-        <Checkbox checked={rowSelected} onChange={(e) => selectRow(rowId)} />
+        <Checkbox checked={rowSelected} onChange={() => selectRow(rowId)} />
       </TableCell>
       <TableCell key={`${rowId}-id`}>{rowId}</TableCell>
       <TableCell key={`${rowId}-dsName`}>{dsName}</TableCell>
@@ -27,13 +27,13 @@ const Row = ({
 
       <TableCell className={classes.actionTd} key={`${rowId}-edit`}>
         <ButtonStrip>
-          <Button disabled={loading} secondary onClick={(e) => handleClick(rowId)}>
+          <Button disabled={loading} secondary onClick={() => handleClick(rowId)}>
             Edit
           </Button>
-          <Button disabled={loading} primary onClick={(e) => generateMapping(rowId)}>
+          <Button disabled={loading} primary onClick={() => generateMapping(rowId)}>
             Generate Mapping
           </Button>
-          <Button disabled={loading} destructive onClick={(e) => handleDelete(rowId)}>
+          <Button disabled={loading} destructive onClick={() => handleDelete(rowId)}>
             Delete
           </Button>
         </ButtonStrip>

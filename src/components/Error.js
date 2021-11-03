@@ -1,7 +1,12 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
-const Error = (props) => {
-  return <span>{props.children}</span>
+const Error = ({ children }) => {
+  return <span>{children}</span>
+}
+
+Error.propTypes = {
+  children: PropTypes.node,
 }
 
 export default Error

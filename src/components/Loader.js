@@ -1,7 +1,12 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
-const Loader = (props) => {
-  return <span>{props.children}</span>
+const Loader = ({ children }) => {
+  return <span>{children}</span>
+}
+
+Loader.propTypes = {
+  children: PropTypes.node,
 }
 
 export default Loader

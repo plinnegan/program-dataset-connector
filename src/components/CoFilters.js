@@ -1,6 +1,6 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import { Table, TableHead, TableRowHead, TableCellHead, TableBody } from '@dhis2/ui'
+import PropTypes from 'prop-types'
+import React from 'react'
 import RowCatFilter from './RowCatFilter'
 
 const noCoStyle = {
@@ -53,6 +53,7 @@ CoFilters.propTypes = {
     deName: PropTypes.string.isRequired,
     dsName: PropTypes.string.isRequired,
     piName: PropTypes.string.isRequired,
+    coFilters: PropTypes.shape({ name: PropTypes.string.isRequired, id: PropTypes.string.isRequired }),
   }).isRequired,
   setRowData: PropTypes.func.isRequired,
   coMappings: PropTypes.objectOf(

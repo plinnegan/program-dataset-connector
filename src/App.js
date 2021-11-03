@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react'
 import { useDataQuery, useDataMutation } from '@dhis2/app-runtime'
-import i18n from '@dhis2/d2-i18n'
+import React, { useState, useEffect } from 'react'
 import classes from './App.module.css'
 import ConnectDataStore from './components/ConnectDataStore'
-import Loader from './components/Loader'
 import Error from './components/Error'
+import Loader from './components/Loader'
 import { config } from './consts'
 
 const query = {

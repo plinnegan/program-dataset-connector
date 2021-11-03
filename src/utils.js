@@ -6,7 +6,7 @@
  */
 export function getCosFromMetadata(metadata, coMaps) {
   const cos = metadata.categoryCombo.categories.reduce(
-    (acc, curr) => [...acc, ...curr.categoryOptions.map((co) => ({ uid: co.id, name: co.name }))],
+    (acc, curr) => [...acc, ...curr.categoryOptions.map(co => ({ uid: co.id, name: co.name }))],
     []
   )
   const withoutDefault = cos.filter(({ name }) => name !== 'default')
@@ -31,9 +31,9 @@ export function getCosFromMetadata(metadata, coMaps) {
  * @returns {object} Object to map from the category options against the DE or DS to the filters defined in coMaps
  */
 export function getCosFromRow(dsUid, deUid, metadata, coMaps) {
-  const des = metadata.dataElements.dataElements.filter((de) => de.id === deUid)
+  const des = metadata.dataElements.dataElements.filter(de => de.id === deUid)
   let desCos = null
-  const dss = metadata.dataSets.dataSets.filter((ds) => ds.id === dsUid)
+  const dss = metadata.dataSets.dataSets.filter(ds => ds.id === dsUid)
   let dsCos = null
   if (des.length) {
     const de = des[0]
@@ -86,7 +86,7 @@ export function sortByKeyValue(obj, key) {
     }
   }, {})
   const sortedValArr = Object.values(obj)
-    .map((val) => val[key])
+    .map(val => val[key])
     .sort()
   let result = []
   const processedVals = []
