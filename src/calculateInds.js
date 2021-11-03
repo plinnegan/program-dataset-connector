@@ -26,6 +26,13 @@ function getBaseFilter(piUid, allPis) {
 
 function getFilters(metaItem, coMaps) {
   const rawCocs = metaItem.categoryCombo.categoryOptionCombos
+  if (rawCocs.length === 0) {
+    throw new MappingGenerationError(
+      'Data set or data element does not appear to have any category option combos associated ' +
+        `with the assigned category combo: ${metaItem.categoryCombo}, please generate category ` +
+        'option combos in the admin app before attempting to generate the mapping again'
+    )
+  }
   const cocs = rawCocs.map((coc) => orderCos(coc))
   const result = []
   for (const coc of cocs) {
