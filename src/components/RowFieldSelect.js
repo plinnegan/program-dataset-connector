@@ -5,10 +5,19 @@ import React from 'react'
 const RowFieldSelect = ({ metadata, rowData, label, updateFields, onSelect }) => {
   const handleSelect = e => {
     const selectedMeta = metadata.filter(meta => meta.id === e.selected)[0]
-    onSelect({ ...rowData, [updateFields.uid]: selectedMeta.id, [updateFields.name]: selectedMeta.name })
+    onSelect({
+      ...rowData,
+      [updateFields.uid]: selectedMeta.id,
+      [updateFields.name]: selectedMeta.name,
+    })
   }
   return (
-    <SingleSelectField label={label} filterable selected={rowData[updateFields.uid]} onChange={e => handleSelect(e)}>
+    <SingleSelectField
+      label={label}
+      filterable
+      selected={rowData[updateFields.uid]}
+      onChange={e => handleSelect(e)}
+    >
       {metadata.map(({ id, name }) => (
         <SingleSelectOption label={name} key={id} value={id} />
       ))}
@@ -17,7 +26,8 @@ const RowFieldSelect = ({ metadata, rowData, label, updateFields, onSelect }) =>
 }
 
 RowFieldSelect.propTypes = {
-  metadata: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.string, name: PropTypes.string })).isRequired,
+  metadata: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.string, name: PropTypes.string }))
+    .isRequired,
   rowData: PropTypes.shape({
     deUid: PropTypes.string.isRequired,
     dsUid: PropTypes.string.isRequired,
@@ -28,7 +38,10 @@ RowFieldSelect.propTypes = {
     piName: PropTypes.string.isRequired,
   }).isRequired,
   label: PropTypes.string.isRequired,
-  updateFields: PropTypes.shape({ uid: PropTypes.string.isRequired, name: PropTypes.string.isRequired }).isRequired,
+  updateFields: PropTypes.shape({
+    uid: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+  }).isRequired,
   onSelect: PropTypes.func.isRequired,
 }
 

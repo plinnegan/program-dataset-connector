@@ -51,7 +51,8 @@ const generatedMeta = {
     resource: 'programIndicators',
     params: {
       filter: 'name:like:rowId-',
-      fields: 'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
+      fields:
+        'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
       paging: 'false',
     },
   },
@@ -59,7 +60,8 @@ const generatedMeta = {
     resource: 'indicators',
     params: {
       filter: 'name:like:rowId-',
-      fields: 'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
+      fields:
+        'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
       paging: 'false',
     },
   },
@@ -189,7 +191,15 @@ const Page = ({ metadata, existingConfig }) => {
     const coFilters = { ...coMaps, ...coRowFilters }
     setRowsLoading({ ...rowsLoading, [rowId]: true })
     try {
-      const results = generateDataMapping(rowId, dsUid, deUid, piUid, coFilters, metadata, generatedMetadata)
+      const results = generateDataMapping(
+        rowId,
+        dsUid,
+        deUid,
+        piUid,
+        coFilters,
+        metadata,
+        generatedMetadata
+      )
       if (results.needsDelete) {
         engine.mutate(deleteMutation, {
           variables: { data: results.deleteMetadata },
@@ -276,9 +286,10 @@ const Page = ({ metadata, existingConfig }) => {
     <div className={classes.pageDiv}>
       <h1>Program Dataset Connector</h1>
       <p>
-        This application is used to link program indicators to a data elements in a specific data set. This is used to
-        generate copies of the program indicator for each of the disaggregations assigned to the data element in the
-        data set (including dissagregations on the data set itself)
+        This application is used to link program indicators to a data elements in a specific data
+        set. This is used to generate copies of the program indicator for each of the
+        disaggregations assigned to the data element in the data set (including dissagregations on
+        the data set itself)
       </p>
       <br />
       <br />
@@ -292,7 +303,10 @@ const Page = ({ metadata, existingConfig }) => {
         ></Mapping>
       )}
       {showImportStatus && (
-        <ImportSummary handleClose={() => setShowImportStatus(false)} importResults={importResults} />
+        <ImportSummary
+          handleClose={() => setShowImportStatus(false)}
+          importResults={importResults}
+        />
       )}
       <InputField
         className={classes.filterInput}

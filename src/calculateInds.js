@@ -138,10 +138,13 @@ function calculatePis(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedPis
 }
 
 function getMappingAttr(piUid, attributeValues) {
-  const attrVal = attributeValues.filter(attrVal => attrVal.attribute.id === config.indCustomAttr.id)
+  const attrVal = attributeValues.filter(
+    attrVal => attrVal.attribute.id === config.indCustomAttr.id
+  )
   if (attrVal.length === 0) {
     throw new MappingGenerationError(
-      `Program indicator ${piUid.id} does not have de mapping attribute value for custom attribute ${config.indCustomAttr.id}`
+      `Program indicator ${piUid.id} does not have de mapping attribute value for custom ` +
+        `attribute ${config.indCustomAttr.id}`
     )
   } else {
     return attrVal[0].value
@@ -173,14 +176,18 @@ function generateInd(indUid, piSource, indTypeUid) {
 }
 
 function calculateIndGroup(rowId, generatedIndGroups, createUpdateInds) {
-  const IndGroups = generatedIndGroups.filter(indGroup => indGroup.name.includes(`indMappingGroup-${rowId}`))
+  const IndGroups = generatedIndGroups.filter(indGroup =>
+    indGroup.name.includes(`indMappingGroup-${rowId}`)
+  )
   let indGroup
   if (IndGroups.length) {
     indGroup = IndGroups[0]
   } else {
     const uid = makeUid()
     indGroup = {
-      name: `indMappingGroup-${rowId} (/api/analytics/dataValueSet.json?dimension=dx:IN_GROUP-${uid}&outputIdScheme=ATTRIBUTE:${config.indCustomAttr.id})  (generated)`,
+      name:
+        `indMappingGroup-${rowId} (/api/analytics/dataValueSet.json?dimension=dx:IN_GROUP-` +
+        `${uid}&outputIdScheme=ATTRIBUTE:${config.indCustomAttr.id})  (generated)`,
       id: uid,
     }
   }
@@ -214,7 +221,15 @@ function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes) {
   }
 }
 
-export default function generateDataMapping(rowId, dsUid, deUid, piUid, coMaps, baseMetadata, generatedMetadata) {
+export default function generateDataMapping(
+  rowId,
+  dsUid,
+  deUid,
+  piUid,
+  coMaps,
+  baseMetadata,
+  generatedMetadata
+) {
   const indTypes = baseMetadata.indicatorTypes.indicatorTypes
   const {
     programIndicators: generatedPis,
@@ -225,8 +240,21 @@ export default function generateDataMapping(rowId, dsUid, deUid, piUid, coMaps, 
     ...generatedMetadata.generatedInds,
     ...generatedMetadata.generatedIndGroups,
   }
-  const { createUpdatePis, deletePis } = calculatePis(rowId, dsUid, deUid, piUid, coMaps, baseMetadata, generatedPis)
-  const { createUpdateInds, deleteInds } = calculateInds(createUpdatePis, deletePis, generatedInds, indTypes)
+  const { createUpdatePis, deletePis } = calculatePis(
+    rowId,
+    dsUid,
+    deUid,
+    piUid,
+    coMaps,
+    baseMetadata,
+    generatedPis
+  )
+  const { createUpdateInds, deleteInds } = calculateInds(
+    createUpdatePis,
+    deletePis,
+    generatedInds,
+    indTypes
+  )
   const indGroup = calculateIndGroup(rowId, generatedIndGroups, createUpdateInds)
   return {
     createUpdateMetadata: {

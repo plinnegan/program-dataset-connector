@@ -8,7 +8,9 @@ const ImportSummary = ({ handleClose, importResults }) => {
     <Modal large>
       <ModalTitle>Import Summary</ModalTitle>
       <ModalContent>
-        <h4 style={{ color: success ? 'green' : 'red' }}>Import {success ? 'succeeded' : 'failed'}</h4>
+        <h4 style={{ color: success ? 'green' : 'red' }}>
+          Import {success ? 'succeeded' : 'failed'}
+        </h4>
         <p>{message}</p>
       </ModalContent>
       <ModalActions>
@@ -22,7 +24,10 @@ const ImportSummary = ({ handleClose, importResults }) => {
 
 ImportSummary.propTypes = {
   handleClose: PropTypes.func,
-  importResults: PropTypes.shape({ success: PropTypes.bool.isRequired, message: PropTypes.string.isRequired }),
+  importResults: PropTypes.shape({
+    success: PropTypes.bool.isRequired,
+    message: PropTypes.string.isRequired,
+  }),
 }
 
 export default ImportSummary

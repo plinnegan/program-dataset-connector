@@ -4,7 +4,15 @@ import PropTypes from 'prop-types'
 import React, { useState } from 'react'
 import { getBaseUrl } from '../utils'
 
-const RowCatFilter = ({ coUid, catName, catFilter, coMappings, rowData, setRowData, handleClick }) => {
+const RowCatFilter = ({
+  coUid,
+  catName,
+  catFilter,
+  coMappings,
+  rowData,
+  setRowData,
+  handleClick,
+}) => {
   const [rowFilter, setRowFilter] = useState(catFilter)
   const [filterError, setFilterError] = useState('')
   const { appUrl } = useConfig()
@@ -81,7 +89,10 @@ RowCatFilter.propTypes = {
     deName: PropTypes.string.isRequired,
     dsName: PropTypes.string.isRequired,
     piName: PropTypes.string.isRequired,
-    coFilters: PropTypes.shape({ name: PropTypes.string.isRequired, id: PropTypes.string.isRequired }),
+    coFilters: PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      id: PropTypes.string.isRequired,
+    }),
   }).isRequired,
   setRowData: PropTypes.func.isRequired,
 }

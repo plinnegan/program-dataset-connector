@@ -12,7 +12,9 @@ const CoFilters = ({ rowData, setRowData, coMappings, setCoMappings }) => {
   const coUids = Object.keys(coMappings)
   return (
     <>
-      {coUids.length === 0 && <p style={noCoStyle}>No category options for the selected data element</p>}
+      {coUids.length === 0 && (
+        <p style={noCoStyle}>No category options for the selected data element</p>
+      )}
       {coUids.length > 0 && (
         <Table>
           <TableHead>
@@ -53,7 +55,10 @@ CoFilters.propTypes = {
     deName: PropTypes.string.isRequired,
     dsName: PropTypes.string.isRequired,
     piName: PropTypes.string.isRequired,
-    coFilters: PropTypes.shape({ name: PropTypes.string.isRequired, id: PropTypes.string.isRequired }),
+    coFilters: PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      id: PropTypes.string.isRequired,
+    }),
   }).isRequired,
   setRowData: PropTypes.func.isRequired,
   coMappings: PropTypes.objectOf(
