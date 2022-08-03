@@ -19,7 +19,7 @@ import classes from '../App.module.css'
 import generateDataMapping from '../calculatePis'
 import { config, ADDED_MISSING_CODE_MSG, ERROR_ADDING_CODE_MSG } from '../consts'
 import { MappingGenerationError } from '../Errors'
-import { makeUid, removeKey, sortByKeyValue, filterRowsByText } from '../utils'
+import { makeUid, removeKey, sortByKeyValue, filterRowsByText, updateDes } from '../utils'
 import ActionButtons from './ActionButtons'
 import ImportSummary from './ImportSummary'
 import Mapping from './Mapping'
@@ -195,6 +195,7 @@ const Page = ({ metadata, existingConfig }) => {
       console.log('Updating code!')
       mutate({ id: deUid, code: deUid })
     }
+    metadata.dataElements.dataElements = updateDes(metadata.dataElements.dataElements, deUid)
     const coFilters = { ...coMaps, ...coRowFilters }
     setRowsLoading({ ...rowsLoading, [rowId]: true })
     try {

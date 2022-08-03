@@ -149,3 +149,19 @@ export function getBaseUrl(appUrl) {
     return appUrl
   }
 }
+
+/**
+ * Update the array of data elements by adding the code to the specified de
+ * @param {Array} availableDes Array of data elements
+ * @param {String} deUid Data element uid to be updated
+ * @returns Array of data elements with the code updated
+ */
+export const updateDes = (availableDes, deUid) => {
+  const desOut = availableDes.map(de => {
+    if (de.id === deUid) {
+      de.code = deUid
+    }
+    return de
+  })
+  return desOut
+}
