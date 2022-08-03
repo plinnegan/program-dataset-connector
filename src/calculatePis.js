@@ -87,7 +87,7 @@ function combineFilters(baseFilter, dsFilters, deFilters) {
   return result
 }
 
-function createPiJSON(rowId, pi, deUid, filters, combinedUid) {
+function createPiJSON(rowId, pi, deCode, filters, combinedUid) {
   const pis = []
   for (const { cocUid, aocUid, filter, suffix } of filters.values()) {
     const snUnique = `${aocUid}-${cocUid}-${combinedUid}`
@@ -102,7 +102,7 @@ function createPiJSON(rowId, pi, deUid, filters, combinedUid) {
     newPi.shortName = snUnique
     newPi.attributeValues = [
       {
-        value: deUid,
+        value: deCode,
         attribute: {
           id: config.indCustomAttr.id,
         },
@@ -116,12 +116,13 @@ function createPiJSON(rowId, pi, deUid, filters, combinedUid) {
   return pis
 }
 
-function calculatePis(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedPis) {
+function calculatePis(rowId, dsUid, deInfo, piUid, coMaps, metadata, generatedPis) {
   const { dataSets, dataElements, programIndicators } = {
     ...metadata.dataSets,
     ...metadata.dataElements,
     ...metadata.programIndicators,
   }
+  const { id: deUid, code: deCode } = deInfo
   const deleteOldPis = generatedPis.filter(pi => pi.description.includes(rowId))
   const combinedUid = `${dsUid.slice(0, 3)}-${deUid.slice(0, 3)}-${piUid.slice(0, 3)}`
   const baseFilter = getBaseFilter(piUid, programIndicators)
@@ -132,7 +133,7 @@ function calculatePis(rowId, dsUid, deUid, piUid, coMaps, metadata, generatedPis
   const combinedFilters = combineFilters(baseFilter, dsFilters, deFilters)
   const pi = getByUid(piUid, programIndicators)
   const piUpdates = { deletePis: deleteOldPis }
-  piUpdates.createUpdatePis = createPiJSON(rowId, pi, deUid, combinedFilters, combinedUid)
+  piUpdates.createUpdatePis = createPiJSON(rowId, pi, deCode, combinedFilters, combinedUid)
   return piUpdates
 }
 
@@ -157,7 +158,7 @@ function calculatePiGroup(rowId, generatedPiGroups, createUpdatePis, deShortName
 export default function generateDataMapping(
   rowId,
   dsUid,
-  deUid,
+  de,
   piUid,
   coMaps,
   baseMetadata,
@@ -168,14 +169,13 @@ export default function generateDataMapping(
   const { createUpdatePis, deletePis } = calculatePis(
     rowId,
     dsUid,
-    deUid,
+    de,
     piUid,
     coMaps,
     baseMetadata,
     generatedPis
   )
-  const des = baseMetadata.dataElements.dataElements.filter(({ id }) => id === deUid)
-  console.log(des)
+  const des = baseMetadata.dataElements.dataElements.filter(({ id }) => id === de.id)
   const piGroup = calculatePiGroup(rowId, generatedPiGroups, createUpdatePis, des[0].shortName)
   return {
     createUpdateMetadata: {

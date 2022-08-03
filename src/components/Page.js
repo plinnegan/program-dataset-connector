@@ -1,4 +1,5 @@
-import { useDataEngine, useDataQuery, useAlert } from '@dhis2/app-runtime'
+import { useDataEngine, useDataQuery, useDataMutation, useAlert } from '@dhis2/app-runtime'
+import { addCodeMutation } from '../mutations'
 import {
   Table,
   TableHead,
@@ -16,7 +17,7 @@ import PropTypes from 'prop-types'
 import React, { useState, useEffect } from 'react'
 import classes from '../App.module.css'
 import generateDataMapping from '../calculatePis'
-import { config } from '../consts'
+import { config, ADDED_MISSING_CODE_MSG, ERROR_ADDING_CODE_MSG } from '../consts'
 import { MappingGenerationError } from '../Errors'
 import { makeUid, removeKey, sortByKeyValue, filterRowsByText } from '../utils'
 import ActionButtons from './ActionButtons'
@@ -87,8 +88,17 @@ const Page = ({ metadata, existingConfig }) => {
   })
   const [selectedRowData, setSelectedRowData] = useState({})
   const { data: generatedMetadata, refetch } = useDataQuery(generatedMeta)
-  const { show: showNoSelectedWarning } = useAlert('Please select at least one row to continue', {
-    warning: true,
+  const { show } = useAlert(
+    ({ msg }) => msg,
+    ({ type }) => ({ [type]: true })
+  )
+  const [mutate] = useDataMutation(addCodeMutation, {
+    onComplete: () => {
+      show({ msg: ADDED_MISSING_CODE_MSG, type: 'warning' })
+    },
+    onError: () => {
+      show({ msg: ERROR_ADDING_CODE_MSG, type: 'critical' })
+    },
   })
   const engine = useDataEngine()
 
@@ -163,7 +173,15 @@ const Page = ({ metadata, existingConfig }) => {
     if (rowIds.length) {
       generateMapping(rowIds)
     } else {
-      showNoSelectedWarning()
+      show({ msg: 'Please select at least one row to continue', type: 'warning' })
+    }
+  }
+
+  const getCodeFromId = (des, deUid) => {
+    for (const { id, code } of des) {
+      if (id === deUid) {
+        return code
+      }
     }
   }
 
@@ -171,13 +189,19 @@ const Page = ({ metadata, existingConfig }) => {
     const multiRowUpdate = Array.isArray(rowIds)
     const rowId = multiRowUpdate ? rowIds.shift() : rowIds
     const { dsUid, deUid, piUid, coFilters: coRowFilters } = dePiMaps[rowId]
+    const deCode = getCodeFromId(metadata.dataElements.dataElements, deUid)
+    console.log('deCode: ', deCode)
+    if (deCode === undefined) {
+      console.log('Updating code!')
+      mutate({ id: deUid, code: deUid })
+    }
     const coFilters = { ...coMaps, ...coRowFilters }
     setRowsLoading({ ...rowsLoading, [rowId]: true })
     try {
       const results = generateDataMapping(
         rowId,
         dsUid,
-        deUid,
+        { id: deUid, code: deUid },
         piUid,
         coFilters,
         metadata,

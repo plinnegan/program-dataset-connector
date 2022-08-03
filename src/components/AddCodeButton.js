@@ -1,16 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { addCodeMutation } from '../mutations'
 import { useDataMutation, useAlert } from '@dhis2/app-runtime'
 import { Button } from '@dhis2/ui'
 import './Mapping.css'
-
-const addCodeMutation = {
-  type: 'update',
-  resource: 'dataElements',
-  id: ({ id }) => id,
-  partial: true,
-  data: ({ code }) => ({ code }),
-}
 
 const AddCodeButton = ({ deUid, setMissingCode, availableDes, setAvailableDes }) => {
   const { show } = useAlert(

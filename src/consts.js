@@ -9,3 +9,9 @@ export const config = {
     programIndicatorAttribute: true,
   },
 }
+
+export const ADDED_MISSING_CODE_MSG =
+  'Target data element was missing a code required for mapping, so code field has been populated with the uid.'
+
+export const ERROR_ADDING_CODE_MSG =
+  'Target data element is missing a code, error adding code automatically.'
