@@ -19,7 +19,7 @@ const query = {
     resource: 'dataElements',
     params: {
       fields:
-        'id,name,dataSetElements(dataSet),categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
+        'id,name,code,shortName,dataSetElements(dataSet),categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
       filter: 'domainType:eq:AGGREGATE',
       paging: 'false',
     },
@@ -42,25 +42,12 @@ const query = {
       fields: 'id',
     },
   },
-  indicatorTypes: {
-    resource: 'indicatorTypes',
-    params: {
-      filter: 'factor:eq:1',
-      fields: 'id',
-    },
-  },
 }
 
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
   type: 'create',
   data: { dePiMaps: {}, coMaps: {} },
-}
-
-const indTypeMutation = {
-  resource: `indicatorTypes`,
-  type: 'create',
-  data: config.indType,
 }
 
 const attrMutation = {
@@ -76,7 +63,6 @@ const MyApp = () => {
     onComplete: () => setDataStoreSetup(true),
   })
   const [mutateAttribute] = useDataMutation(attrMutation)
-  const [mutateIndType] = useDataMutation(indTypeMutation)
   const { dataStoreName } = config
 
   useEffect(() => {
@@ -86,9 +72,6 @@ const MyApp = () => {
       }
       if (metadata.mappingAttr.attributes.length === 0) {
         mutateAttribute()
-      }
-      if (metadata.indicatorTypes.indicatorTypes.length === 0) {
-        mutateIndType()
       }
     }
   }, [metadata])

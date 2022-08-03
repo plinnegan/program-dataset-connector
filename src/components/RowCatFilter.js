@@ -2,7 +2,6 @@ import { useConfig } from '@dhis2/app-runtime'
 import { TableRow, TableCell, InputField } from '@dhis2/ui'
 import PropTypes from 'prop-types'
 import React, { useState } from 'react'
-import { getBaseUrl } from '../utils'
 
 const RowCatFilter = ({
   coUid,
@@ -15,8 +14,7 @@ const RowCatFilter = ({
 }) => {
   const [rowFilter, setRowFilter] = useState(catFilter)
   const [filterError, setFilterError] = useState('')
-  const { baseUrl: appUrl } = useConfig()
-  const baseUrl = getBaseUrl(appUrl)
+  const { baseUrl } = useConfig()
   const coFilters = rowData?.coFilters ? rowData.coFilters : {}
 
   const handleFilterChange = filterText => {
@@ -47,7 +45,6 @@ const RowCatFilter = ({
           }
         })
     }
-    console.log(`Updating filter: ${filterText}`)
     setRowData({
       ...rowData,
       coFilters: { ...coFilters, [coUid]: { name: catName, filter: filterText } },

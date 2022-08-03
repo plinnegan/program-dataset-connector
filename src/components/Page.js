@@ -15,7 +15,7 @@ import {
 import PropTypes from 'prop-types'
 import React, { useState, useEffect } from 'react'
 import classes from '../App.module.css'
-import generateDataMapping from '../calculateInds'
+import generateDataMapping from '../calculatePis'
 import { config } from '../consts'
 import { MappingGenerationError } from '../Errors'
 import { makeUid, removeKey, sortByKeyValue, filterRowsByText } from '../utils'
@@ -56,17 +56,8 @@ const generatedMeta = {
       paging: 'false',
     },
   },
-  generatedInds: {
-    resource: 'indicators',
-    params: {
-      filter: 'name:like:rowId-',
-      fields:
-        'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
-      paging: 'false',
-    },
-  },
-  generatedIndGroups: {
-    resource: 'indicatorGroups',
+  generatedPiGroups: {
+    resource: 'programIndicatorGroups',
     params: {
       filter: 'name:like:rowId-',
       fields: 'id,name',
@@ -144,18 +135,10 @@ const Page = ({ metadata, existingConfig }) => {
   }
 
   const onDelete = rowId => {
-    const {
-      programIndicators: generatedPis,
-      indicators: generatedInds,
-      indicatorGroups: generatedIndGroups,
-    } = {
-      ...generatedMetadata.generatedPis,
-      ...generatedMetadata.generatedInds,
-      ...generatedMetadata.generatedIndGroups,
-    }
+    const generatedPis = generatedMetadata.generatedPis.programIndicators
+    const generatedPiGroups = generatedMetadata.generatedPiGroups.programIndicatorGroups
     const delPis = generatedPis.filter(pi => pi.description.includes(rowId))
-    const delInds = generatedInds.filter(ind => ind.description.includes(rowId))
-    const delIndGroups = generatedIndGroups.filter(indGroup => indGroup.name.includes(rowId))
+    const delPiGroups = generatedPiGroups.filter(piGroup => piGroup.name.includes(rowId))
     const newDePiMaps = removeKey(dePiMaps, rowId)
     setDePiMaps(newDePiMaps)
     setRowsLoading(removeKey(rowsLoading, rowId))
@@ -165,7 +148,7 @@ const Page = ({ metadata, existingConfig }) => {
     })
     engine.mutate(deleteMutation, {
       variables: {
-        data: { programIndicators: delPis, indicators: delInds, indicatorGroups: delIndGroups },
+        data: { programIndicators: delPis, programIndicatorGroups: delPiGroups },
       },
     })
   }

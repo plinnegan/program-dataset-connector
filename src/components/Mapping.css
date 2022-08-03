@@ -1,0 +1,13 @@
+.selectSection {
+  display: flex;
+}
+
+.selectSection > span,
+.selectSection > div {
+  flex-grow: 1;
+}
+
+.addCodeBtn {
+  align-self: center;
+  margin: 10px 4px 0 10px;
+}

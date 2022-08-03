@@ -3,16 +3,9 @@ export const config = {
   dataStoreKey: 'metadata',
   indCustomAttr: {
     id: 'b8KbU93phhz',
-    name: 'Event aggregate mapping',
-    indicatorAttribute: true,
+    name: 'Data element for aggregate data export',
     publicAccess: 'r-------',
     valueType: 'TEXT',
     programIndicatorAttribute: true,
-  },
-  indType: {
-    name: 'Number (Factor 1)',
-    id: 'JkWynlWMjJR',
-    number: true,
-    factor: 1,
   },
 }

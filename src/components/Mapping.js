@@ -4,12 +4,15 @@ import React, { useState, useEffect } from 'react'
 import { getCosFromRow } from '../utils'
 import CoFilters from './CoFilters'
 import RowFieldSelect from './RowFieldSelect'
+import AddCodeButton from './AddCodeButton'
+import './Mapping.css'
 
 const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => {
   const [rowData, setRowData] = useState(rowDataIn)
   const [coMappings, setCoMappings] = useState({})
   const [availableDes, setAvailableDes] = useState(metadata.dataElements.dataElements)
-  const disableSave = [rowData.dsUid, rowData.deUid, rowData.piUid].includes('')
+  const [missingCode, setMissingCode] = useState(false)
+  const disableSave = [rowData.dsUid, rowData.deUid, rowData.piUid].includes('') || missingCode
 
   useEffect(() => {
     setCoMappings(getCosFromRow(rowData.dsUid, rowData.deUid, metadata, coMaps))
@@ -42,13 +45,25 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
           onSelect={handleDsSelect}
         />
         <br />
-        <RowFieldSelect
-          metadata={availableDes}
-          rowData={rowData}
-          label="Data Element"
-          updateFields={{ uid: 'deUid', name: 'deName' }}
-          onSelect={setRowData}
-        />
+        <div className="selectSection">
+          <RowFieldSelect
+            metadata={availableDes}
+            rowData={rowData}
+            label="Data Element"
+            updateFields={{ uid: 'deUid', name: 'deName' }}
+            onSelect={setRowData}
+            missingCode={missingCode}
+            setMissingCode={setMissingCode}
+          />
+          {missingCode && (
+            <AddCodeButton
+              deUid={rowData.deUid}
+              setMissingCode={setMissingCode}
+              availableDes={availableDes}
+              setAvailableDes={setAvailableDes}
+            />
+          )}
+        </div>
         <br />
         <RowFieldSelect
           metadata={metadata.programIndicators.programIndicators}
