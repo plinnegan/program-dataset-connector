@@ -165,3 +165,37 @@ export const updateDes = (availableDes, deUid) => {
   })
   return desOut
 }
+
+function getCosByCat(items, itemUid, mapCoUids) {
+  const counts = []
+  for (const item of items) {
+    if (item.id === itemUid) {
+      for (const cat of item.categoryCombo.categories) {
+        let catCount = 0
+        for (const co of cat.categoryOptions) {
+          if (mapCoUids.includes(co.id)) {
+            catCount += 1
+          }
+        }
+        counts.push(Math.max(1, catCount))
+      }
+    }
+  }
+  return counts
+}
+
+/**
+ * Count how many PIs are expected to be generated
+ * @param {Object} coMaps Object with key:value as coUid:coFilter
+ * @param {String} deUid DHIS2 uid for the target data element
+ * @param {String} dsUid DHIS2 uid for the target data set
+ * @param {Object} metadata Holding all DE and DS info for the system
+ * @returns
+ */
+export function getPiCount(coMaps, deUid, dsUid, metadata) {
+  const des = metadata.dataElements.dataElements
+  const ds = metadata.dataSets.dataSets
+  const coMapUids = Object.keys(coMaps)
+  const cosByCat = [...getCosByCat(des, deUid, coMapUids), ...getCosByCat(ds, dsUid, coMapUids)]
+  return cosByCat.reduce((acc, curr) => Math.max(1, curr) * acc, 1)
+}

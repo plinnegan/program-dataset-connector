@@ -15,7 +15,9 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
   const disableSave = [rowData.dsUid, rowData.deUid, rowData.piUid].includes('') || missingCode
 
   useEffect(() => {
-    setCoMappings(getCosFromRow(rowData.dsUid, rowData.deUid, metadata, coMaps))
+    const coMappings = getCosFromRow(rowData.dsUid, rowData.deUid, metadata, coMaps)
+    setRowData({ ...rowData, coFilters: coMappings })
+    setCoMappings(coMappings)
   }, [rowData.deUid, rowData.dsUid])
 
   const handleDsSelect = rowData => {
@@ -74,12 +76,16 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
         />
         <br />
         <br />
-        <CoFilters
-          rowData={rowData}
-          setRowData={setRowData}
-          coMappings={coMappings}
-          setCoMappings={setCoMappings}
-        />
+        {Object.keys(coMappings).length > 0 ? (
+          <CoFilters
+            rowData={rowData}
+            setRowData={setRowData}
+            coMappings={coMappings}
+            setCoMappings={setCoMappings}
+          />
+        ) : (
+          <p className="noCoMsg">No category options for the selected data element</p>
+        )}
       </ModalContent>
       <ModalActions>
         <ButtonStrip>

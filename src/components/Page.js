@@ -19,7 +19,14 @@ import classes from '../App.module.css'
 import generateDataMapping from '../calculatePis'
 import { config, ADDED_MISSING_CODE_MSG, ERROR_ADDING_CODE_MSG } from '../consts'
 import { MappingGenerationError } from '../Errors'
-import { makeUid, removeKey, sortByKeyValue, filterRowsByText, updateDes } from '../utils'
+import {
+  makeUid,
+  removeKey,
+  sortByKeyValue,
+  filterRowsByText,
+  updateDes,
+  getPiCount,
+} from '../utils'
 import ActionButtons from './ActionButtons'
 import ImportSummary from './ImportSummary'
 import Mapping from './Mapping'
@@ -290,6 +297,11 @@ const Page = ({ metadata, existingConfig }) => {
     setFilteredRowIds(filterRowsByText(dePiMaps, orderedRowIds, e.value))
   }
 
+  const getSummaryInfo = rowId => {
+    const { deUid, dsUid, coFilters } = dePiMaps[rowId]
+    return { piCount: getPiCount(coFilters, deUid, dsUid, metadata) }
+  }
+
   return (
     <div className={classes.pageDiv}>
       <h1>Program Dataset Connector</h1>
@@ -364,6 +376,7 @@ const Page = ({ metadata, existingConfig }) => {
                   loading={rowsLoading[key]}
                   rowSelected={rowsSelected[key]}
                   selectRow={handleSelectRow}
+                  getSummaryInfo={getSummaryInfo}
                 />
               )
             })}

@@ -33,7 +33,9 @@ const RowFieldSelect = ({
   useEffect(() => {
     const initiallySelected = rowData[updateFields.uid]
     const selectedMeta = metadata.filter(meta => meta.id === initiallySelected)[0]
-    checkCode(selectedMeta)
+    if (selectedMeta) {
+      checkCode(selectedMeta)
+    }
   }, [])
 
   const selectField = (
