@@ -11,7 +11,7 @@ const query = {
     resource: 'dataSets',
     params: {
       fields:
-        'id,name,dataSetElements(dataElement(id)),categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
+        'id,name,dataSetElements(dataElement(id)),categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name,shortName)),categories(id,categoryOptions(id,name)))',
       paging: 'false',
     },
   },
@@ -19,7 +19,7 @@ const query = {
     resource: 'dataElements',
     params: {
       fields:
-        'id,name,code,shortName,dataSetElements(dataSet),categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name)),categories(id,categoryOptions(id,name)))',
+        'id,name,code,shortName,dataSetElements(dataSet),categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name,shortName)),categories(id,categoryOptions(id,name)))',
       filter: 'domainType:eq:AGGREGATE',
       paging: 'false',
     },

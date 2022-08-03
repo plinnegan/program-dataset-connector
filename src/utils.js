@@ -195,7 +195,9 @@ function getCosByCat(items, itemUid, mapCoUids) {
 export function getPiCount(coMaps, deUid, dsUid, metadata) {
   const des = metadata.dataElements.dataElements
   const ds = metadata.dataSets.dataSets
-  const coMapUids = Object.keys(coMaps)
+  const coMapUids = Object.keys(coMaps).filter(
+    coUid => coMaps[coUid].filter && coMaps[coUid].filter.length > 0
+  )
   const cosByCat = [...getCosByCat(des, deUid, coMapUids), ...getCosByCat(ds, dsUid, coMapUids)]
   return cosByCat.reduce((acc, curr) => Math.max(1, curr) * acc, 1)
 }

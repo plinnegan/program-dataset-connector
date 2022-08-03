@@ -55,10 +55,10 @@ function getFilters(metaItem, coMaps) {
       }
       if (cocFilter === '') {
         cocFilter = `(${coMaps[co.id].filter})`
-        cocSuffix = ` (${co.name})`
+        cocSuffix = ` (${co.shortName ? co.shortName : co.name})`
       } else {
         cocFilter = `${cocFilter} && (${coMaps[co.id].filter})`
-        cocSuffix = `${cocSuffix} (${co.name})`
+        cocSuffix = `${cocSuffix} (${co.shortName ? co.shortName : co.name})`
       }
     }
     if (!skipCoc) {
