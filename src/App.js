@@ -43,12 +43,25 @@ const query = {
       fields: 'id',
     },
   },
+  indicatorTypes: {
+    resource: 'indicatorTypes',
+    params: {
+      filter: 'factor:eq:1',
+      fields: 'id',
+    },
+  },
 }
 
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
   type: 'create',
   data: { dePiMaps: {}, coMaps: {}, generateIndicators: false },
+}
+
+const indTypeMutation = {
+  resource: `indicatorTypes`,
+  type: 'create',
+  data: config.indType,
 }
 
 const attrMutation = {
@@ -60,6 +73,7 @@ const attrMutation = {
 const MyApp = () => {
   const { loading, error, data: metadata } = useDataQuery(query)
   const [dataStoreSetup, setDataStoreSetup] = useState(false)
+  const [mutateIndType] = useDataMutation(indTypeMutation)
   const [mutateDataStore] = useDataMutation(dataStoreMutation, {
     onComplete: () => setDataStoreSetup(true),
   })
@@ -73,6 +87,9 @@ const MyApp = () => {
       }
       if (metadata.mappingAttr.attributes.length === 0) {
         mutateAttribute()
+      }
+      if (metadata.indicatorTypes.indicatorTypes.length === 0) {
+        mutateIndType()
       }
     }
   }, [metadata])

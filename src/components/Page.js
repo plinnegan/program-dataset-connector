@@ -54,24 +54,46 @@ const deleteMutation = {
   },
 }
 
-const generatedMeta = {
-  generatedPis: {
-    resource: 'programIndicators',
-    params: {
-      filter: 'name:like:rowId-',
-      fields:
-        'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
-      paging: 'false',
+function getGeneratedMeta(generateIndicators) {
+  const generatedMeta = {
+    generatedPis: {
+      resource: 'programIndicators',
+      params: {
+        filter: 'name:like:rowId-',
+        fields:
+          'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
+        paging: 'false',
+      },
     },
-  },
-  generatedPiGroups: {
-    resource: 'programIndicatorGroups',
-    params: {
-      filter: 'name:like:rowId-',
-      fields: 'id,name',
-      paging: 'false',
+    generatedPiGroups: {
+      resource: 'programIndicatorGroups',
+      params: {
+        filter: 'name:like:rowId-',
+        fields: 'id,name',
+        paging: 'false',
+      },
     },
-  },
+  }
+  if (generateIndicators) {
+    generatedMeta.generatedInds = {
+      resource: 'indicators',
+      params: {
+        filter: 'name:like:rowId-',
+        fields:
+          'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
+        paging: 'false',
+      },
+    }
+    generatedMeta.generatedIndGroups = {
+      resource: 'indicatorGroups',
+      params: {
+        filter: 'name:like:rowId-',
+        fields: 'id,name',
+        paging: 'false',
+      },
+    }
+  }
+  return generatedMeta
 }
 
 const Page = ({ metadata, existingConfig }) => {
@@ -94,6 +116,7 @@ const Page = ({ metadata, existingConfig }) => {
     message: 'Import not complete',
   })
   const [selectedRowData, setSelectedRowData] = useState({})
+  const generatedMeta = getGeneratedMeta(existingConfig?.generateIndicators)
   const { data: generatedMetadata, refetch } = useDataQuery(generatedMeta)
   const { show } = useAlert(
     ({ msg }) => msg,
@@ -156,6 +179,19 @@ const Page = ({ metadata, existingConfig }) => {
     const generatedPiGroups = generatedMetadata.generatedPiGroups.programIndicatorGroups
     const delPis = generatedPis.filter((pi) => pi.description.includes(rowId))
     const delPiGroups = generatedPiGroups.filter((piGroup) => piGroup.name.includes(rowId))
+    const delData = {
+      programIndicators: delPis,
+      programIndicatorGroups: delPiGroups,
+    }
+    if (existingConfig?.generateIndicators) {
+      const generatedInds = generatedMetadata.generatedInds.indicators
+      const generatedIndGroups = generatedMetadata.generatedIndGroups.indicatorGroups
+      const delInds = generatedInds.filter((ind) => ind.description.includes(rowId))
+      const delIndGroups = generatedIndGroups.filter((indGroup) => indGroup.name.includes(rowId))
+      delData.indicators = delInds
+      delData.indicatorGroups = delIndGroups
+    }
+
     const newDePiMaps = removeKey(dePiMaps, rowId)
     setDePiMaps(newDePiMaps)
     setRowsLoading(removeKey(rowsLoading, rowId))
@@ -165,7 +201,7 @@ const Page = ({ metadata, existingConfig }) => {
     })
     engine.mutate(deleteMutation, {
       variables: {
-        data: { programIndicators: delPis, programIndicatorGroups: delPiGroups },
+        data: delData,
       },
     })
   }
@@ -213,7 +249,8 @@ const Page = ({ metadata, existingConfig }) => {
         piUid,
         coFilters,
         metadata,
-        generatedMetadata
+        generatedMetadata,
+        existingConfig?.generateIndicators
       )
       if (results.needsDelete) {
         engine.mutate(deleteMutation, {
@@ -418,6 +455,7 @@ Page.propTypes = {
         piName: PropTypes.string.isRequired,
       })
     ).isRequired,
+    generateIndicators: PropTypes.bool,
   }).isRequired,
 }
 

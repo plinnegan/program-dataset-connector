@@ -8,6 +8,12 @@ export const config = {
     valueType: 'TEXT',
     programIndicatorAttribute: true,
   },
+  indType: {
+    name: 'Number (Factor 1)',
+    id: 'JkWynlWMjJR',
+    number: true,
+    factor: 1,
+  },
 }
 
 export const ADDED_MISSING_CODE_MSG =
