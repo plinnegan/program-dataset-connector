@@ -30,7 +30,9 @@ export function getCosFromMetadata(metadata, coMaps) {
  * @returns CC Override if found, otherwise null
  */
 export function getCcOverride(de, dsUid) {
-  console.log('de: ', de)
+  if (!('dataSetElements' in de)) {
+    return null
+  }
   const dses = de.dataSetElements.filter((dse) => dse.dataSet.id === dsUid)
   if (dses.length > 0) {
     const dse = dses[0]
