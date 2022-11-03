@@ -170,7 +170,7 @@ const Page = ({ metadata, existingConfig }) => {
     setCoMap(newCoMaps)
     setShowModal(false)
     engine.mutate(dataStoreMutation, {
-      variables: { data: { dePiMaps: newDePiMaps, coMaps: newCoMaps } },
+      variables: { data: { ...existingConfig, dePiMaps: newDePiMaps, coMaps: newCoMaps } },
     })
   }
 
@@ -197,7 +197,7 @@ const Page = ({ metadata, existingConfig }) => {
     setRowsLoading(removeKey(rowsLoading, rowId))
     setRowsSelected(removeKey(rowsSelected, rowId))
     engine.mutate(dataStoreMutation, {
-      variables: { data: { dePiMaps: newDePiMaps, coMaps: coMaps } },
+      variables: { data: { ...existingConfig, dePiMaps: newDePiMaps, coMaps: coMaps } },
     })
     engine.mutate(deleteMutation, {
       variables: {
