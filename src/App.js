@@ -6,20 +6,21 @@ import Error from './components/Error'
 import Loader from './components/Loader'
 import { config } from './consts'
 
+const ccInfo =
+  'categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name,shortName)),categories(id,categoryOptions(id,name)))'
+
 const query = {
   dataSets: {
     resource: 'dataSets',
     params: {
-      fields:
-        'id,name,dataSetElements(dataElement(id)),categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name,shortName)),categories(id,categoryOptions(id,name)))',
+      fields: `id,name,dataSetElements(dataElement(id)),${ccInfo}`,
       paging: 'false',
     },
   },
   dataElements: {
     resource: 'dataElements',
     params: {
-      fields:
-        'id,name,code,shortName,dataSetElements(dataSet),categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name,shortName)),categories(id,categoryOptions(id,name)))',
+      fields: `id,name,code,shortName,dataSetElements(dataSet,${ccInfo}),${ccInfo}`,
       filter: 'domainType:eq:AGGREGATE',
       paging: 'false',
     },
@@ -47,7 +48,7 @@ const query = {
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
   type: 'create',
-  data: { dePiMaps: {}, coMaps: {} },
+  data: { dePiMaps: {}, coMaps: {}, generateIndicators: false },
 }
 
 const attrMutation = {

@@ -6,7 +6,7 @@
  */
 export function getCosFromMetadata(metadata, coMaps) {
   const cos = metadata.categoryCombo.categories.reduce(
-    (acc, curr) => [...acc, ...curr.categoryOptions.map(co => ({ uid: co.id, name: co.name }))],
+    (acc, curr) => [...acc, ...curr.categoryOptions.map((co) => ({ uid: co.id, name: co.name }))],
     []
   )
   const withoutDefault = cos.filter(({ name }) => name !== 'default')
@@ -23,6 +23,47 @@ export function getCosFromMetadata(metadata, coMaps) {
 }
 
 /**
+ * Check if the selected data set has a CC override for the selected data element
+ * if so return the CC override, otherwise null
+ * @param {string} deUid Data element to check for CC overrides
+ * @param {Array} dsArr Array of data sets to check for DE in
+ * @returns CC Override if found, otherwise null
+ */
+export function getCcOverride(de, dsUid) {
+  console.log('de: ', de)
+  const dses = de.dataSetElements.filter((dse) => dse.dataSet.id === dsUid)
+  if (dses.length > 0) {
+    const dse = dses[0]
+    if ('categoryCombo' in dse) {
+      return { categoryCombo: dse.categoryCombo }
+    } else {
+      return null
+    }
+  } else {
+    console.warn(`Data set: ${dsUid} not found in the data set elements for ${de.id}`)
+    return null
+  }
+}
+
+/**
+ * Get the raw COCs on the metadata item, including overrides
+ * @param {Object} metaItem Data element or data set to get the COCs from
+ * @param {Object} config Config options for example where to look for CC
+ * @returns Array of category option combos
+ */
+export function getCc(metaItem, config) {
+  if ('dsUid' in config) {
+    const ccOverride = getCcOverride(metaItem, config.dsUid)
+    if (ccOverride && 'categoryCombo' in ccOverride) {
+      return ccOverride.categoryCombo
+    } else {
+      return metaItem.categoryCombo
+    }
+  }
+  return metaItem.categoryCombo
+}
+
+/**
  * Find the relevant COs associated with the provided DE and DS, and return the filter mappings for them
  * @param {string} dsUid DHIS2 uid representing for a data set
  * @param {string} deUid DHIS2 uid representing for a data element
@@ -31,13 +72,18 @@ export function getCosFromMetadata(metadata, coMaps) {
  * @returns {object} Object to map from the category options against the DE or DS to the filters defined in coMaps
  */
 export function getCosFromRow(dsUid, deUid, metadata, coMaps) {
-  const des = metadata.dataElements.dataElements.filter(de => de.id === deUid)
+  const des = metadata.dataElements.dataElements.filter((de) => de.id === deUid)
   let desCos = null
-  const dss = metadata.dataSets.dataSets.filter(ds => ds.id === dsUid)
+  const dss = metadata.dataSets.dataSets.filter((ds) => ds.id === dsUid)
   let dsCos = null
   if (des.length) {
     const de = des[0]
-    desCos = getCosFromMetadata(de, coMaps)
+    const ccOverride = getCcOverride(de, dsUid)
+    if (ccOverride) {
+      desCos = getCosFromMetadata(ccOverride, coMaps)
+    } else {
+      desCos = getCosFromMetadata(de, coMaps)
+    }
   }
   if (dss.length) {
     const ds = dss[0]
@@ -86,7 +132,7 @@ export function sortByKeyValue(obj, key) {
     }
   }, {})
   const sortedValArr = Object.values(obj)
-    .map(val => val[key])
+    .map((val) => val[key])
     .sort()
   let result = []
   const processedVals = []
@@ -157,7 +203,7 @@ export function getBaseUrl(appUrl) {
  * @returns Array of data elements with the code updated
  */
 export const updateDes = (availableDes, deUid) => {
-  const desOut = availableDes.map(de => {
+  const desOut = availableDes.map((de) => {
     if (de.id === deUid) {
       de.code = deUid
     }
@@ -166,11 +212,12 @@ export const updateDes = (availableDes, deUid) => {
   return desOut
 }
 
-function getCosByCat(items, itemUid, mapCoUids) {
+function getCosByCat(items, itemUid, mapCoUids, config) {
   const counts = []
   for (const item of items) {
     if (item.id === itemUid) {
-      for (const cat of item.categoryCombo.categories) {
+      const cc = getCc(item, config)
+      for (const cat of cc.categories) {
         let catCount = 0
         for (const co of cat.categoryOptions) {
           if (mapCoUids.includes(co.id)) {
@@ -196,8 +243,11 @@ export function getPiCount(coMaps, deUid, dsUid, metadata) {
   const des = metadata.dataElements.dataElements
   const ds = metadata.dataSets.dataSets
   const coMapUids = Object.keys(coMaps).filter(
-    coUid => coMaps[coUid].filter && coMaps[coUid].filter.length > 0
+    (coUid) => coMaps[coUid].filter && coMaps[coUid].filter.length > 0
   )
-  const cosByCat = [...getCosByCat(des, deUid, coMapUids), ...getCosByCat(ds, dsUid, coMapUids)]
+  const cosByCat = [
+    ...getCosByCat(des, deUid, coMapUids, { dsUid }),
+    ...getCosByCat(ds, dsUid, coMapUids, {}),
+  ]
   return cosByCat.reduce((acc, curr) => Math.max(1, curr) * acc, 1)
 }

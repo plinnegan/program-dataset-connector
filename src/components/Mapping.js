@@ -20,13 +20,13 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
     setCoMappings(coMappings)
   }, [rowData.deUid, rowData.dsUid])
 
-  const handleDsSelect = rowData => {
+  const handleDsSelect = (rowData) => {
     const dss = metadata.dataSets.dataSets
     const des = metadata.dataElements.dataElements
-    const ds = dss.filter(ds => ds.id === rowData.dsUid)[0]
-    const selectedDe = des.filter(de => de.id === rowData.deUid)[0]
-    const filteredDeUids = ds.dataSetElements.map(dse => dse.dataElement.id)
-    const deOpts = des.filter(de => filteredDeUids.includes(de.id))
+    const ds = dss.filter((ds) => ds.id === rowData.dsUid)[0]
+    const selectedDe = des.filter((de) => de.id === rowData.deUid)[0]
+    const filteredDeUids = ds.dataSetElements.map((dse) => dse.dataElement.id)
+    const deOpts = des.filter((de) => filteredDeUids.includes(de.id))
     if (selectedDe && !filteredDeUids.includes(selectedDe.id)) {
       rowData.deUid = ''
       rowData.deName = ''

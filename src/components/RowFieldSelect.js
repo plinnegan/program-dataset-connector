@@ -11,8 +11,8 @@ const RowFieldSelect = ({
   missingCode,
   setMissingCode,
 }) => {
-  const handleSelect = e => {
-    const selectedMeta = metadata.filter(meta => meta.id === e.selected)[0]
+  const handleSelect = (e) => {
+    const selectedMeta = metadata.filter((meta) => meta.id === e.selected)[0]
     checkCode(selectedMeta)
     onSelect({
       ...rowData,
@@ -21,7 +21,7 @@ const RowFieldSelect = ({
     })
   }
 
-  const checkCode = selectedMeta => {
+  const checkCode = (selectedMeta) => {
     if (updateFields.uid === 'deUid' && !selectedMeta.code) {
       setMissingCode(true)
     } else {
@@ -32,7 +32,7 @@ const RowFieldSelect = ({
   // Check on initial render if the existing DE has a code
   useEffect(() => {
     const initiallySelected = rowData[updateFields.uid]
-    const selectedMeta = metadata.filter(meta => meta.id === initiallySelected)[0]
+    const selectedMeta = metadata.filter((meta) => meta.id === initiallySelected)[0]
     if (selectedMeta) {
       checkCode(selectedMeta)
     }
@@ -43,7 +43,7 @@ const RowFieldSelect = ({
       label={label}
       filterable
       selected={rowData[updateFields.uid]}
-      onChange={e => handleSelect(e)}
+      onChange={(e) => handleSelect(e)}
       error={missingCode}
       validationText={missingCode ? 'Data element missing a code' : ''}
     >

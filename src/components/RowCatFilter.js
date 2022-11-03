@@ -17,7 +17,7 @@ const RowCatFilter = ({
   const { baseUrl } = useConfig()
   const coFilters = rowData?.coFilters ? rowData.coFilters : {}
 
-  const handleFilterChange = filterText => {
+  const handleFilterChange = (filterText) => {
     setRowFilter(filterText)
     if (filterText.length === 0) {
       setFilterError('')
@@ -30,13 +30,13 @@ const RowCatFilter = ({
         },
         body: filterText,
       })
-        .catch(err => {
+        .catch((err) => {
           console.log(`Error checking PI filter: ${err}`)
         })
-        .then(result => {
+        .then((result) => {
           return result.json()
         })
-        .then(data => {
+        .then((data) => {
           const { status, description } = data
           if (status !== 'OK') {
             setFilterError(description)
@@ -63,7 +63,7 @@ const RowCatFilter = ({
           value={rowFilter}
           error={filterError.length > 0}
           validationText={filterError}
-          onChange={e => handleFilterChange(e.value)}
+          onChange={(e) => handleFilterChange(e.value)}
         />
       </TableCell>
     </TableRow>

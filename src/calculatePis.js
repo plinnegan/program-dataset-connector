@@ -1,6 +1,6 @@
 import { config } from './consts'
 import { MappingGenerationError } from './Errors'
-import { makeUid, orderCos } from './utils'
+import { makeUid, orderCos, getCc } from './utils'
 
 class PiCalculationError extends Error {
   constructor(message) {
@@ -10,7 +10,7 @@ class PiCalculationError extends Error {
 }
 
 function getByUid(uid, metadata) {
-  const matches = metadata.filter(metaItem => metaItem.id === uid)
+  const matches = metadata.filter((metaItem) => metaItem.id === uid)
   if (matches.length === 0) {
     throw new PiCalculationError(`Could not find PI with UID ${uid} in metadata`)
   }
@@ -24,16 +24,16 @@ function getBaseFilter(piUid, allPis) {
   return isBracketed || filter === '' ? filter : `(${filter})`
 }
 
-function getFilters(metaItem, coMaps) {
-  const rawCocs = metaItem.categoryCombo.categoryOptionCombos
-  if (rawCocs.length === 0) {
+function getFilters(metaItem, coMaps, config) {
+  const rawCocs = getCc(metaItem, config)?.categoryOptionCombos
+  if (!rawCocs || rawCocs.length === 0) {
     throw new MappingGenerationError(
-      'Data set or data element does not appear to have any category option combos associated ' +
-        `with the assigned category combo: ${metaItem.categoryCombo}, please generate category ` +
+      `Data set or data element ${metaItem?.name} does not appear to have any category option combos associated ` +
+        `with the assigned category combo, please generate category ` +
         'option combos in the admin app before attempting to generate the mapping again'
     )
   }
-  const cocs = rawCocs.map(coc => orderCos(coc))
+  const cocs = rawCocs.map((coc) => orderCos(coc))
   const result = []
   for (const coc of cocs) {
     let cocFilter = ''
@@ -46,7 +46,7 @@ function getFilters(metaItem, coMaps) {
         throw new MappingGenerationError(
           'Found a category option combo which cannot be constructed from the assigned ' +
             'categories, this typically means the COCs on the data element or data set need ' +
-            'updating to align with the categories'
+            'updating to align with the categories (CC override changes can also cause this)'
         )
       } else if (coMaps[co.id].filter === '') {
         console.log(`Skipping coc ${coc.name} because co filter ${co.name} is blank`)
@@ -74,8 +74,8 @@ function combineFilters(baseFilter, dsFilters, deFilters) {
     const { cocUid: aocUid, filter: dsFilter, suffix: dsSuffix } = dsFilterInfo
     for (const deFilterInfo of deFilters) {
       const { cocUid, filter: deFilter, suffix: deSuffix } = deFilterInfo
-      const newFilterArr = [baseFilter, dsFilter, deFilter].filter(arrItem => arrItem !== '')
-      const newSuffixArr = [dsSuffix, deSuffix].filter(suffix => suffix !== '(default)')
+      const newFilterArr = [baseFilter, dsFilter, deFilter].filter((arrItem) => arrItem !== '')
+      const newSuffixArr = [dsSuffix, deSuffix].filter((suffix) => suffix !== '(default)')
       result.push({
         cocUid,
         aocUid,
@@ -123,13 +123,13 @@ function calculatePis(rowId, dsUid, deInfo, piUid, coMaps, metadata, generatedPi
     ...metadata.programIndicators,
   }
   const { id: deUid, code: deCode } = deInfo
-  const deleteOldPis = generatedPis.filter(pi => pi.description.includes(rowId))
+  const deleteOldPis = generatedPis.filter((pi) => pi.description.includes(rowId))
   const combinedUid = `${dsUid.slice(0, 3)}-${deUid.slice(0, 3)}-${piUid.slice(0, 3)}`
   const baseFilter = getBaseFilter(piUid, programIndicators)
   const ds = getByUid(dsUid, dataSets)
-  const dsFilters = getFilters(ds, coMaps)
+  const dsFilters = getFilters(ds, coMaps, {})
   const de = getByUid(deUid, dataElements)
-  const deFilters = getFilters(de, coMaps, dataElements)
+  const deFilters = getFilters(de, coMaps, { dsUid })
   const combinedFilters = combineFilters(baseFilter, dsFilters, deFilters)
   const pi = getByUid(piUid, programIndicators)
   const piUpdates = { deletePis: deleteOldPis }
@@ -138,7 +138,7 @@ function calculatePis(rowId, dsUid, deInfo, piUid, coMaps, metadata, generatedPi
 }
 
 function calculatePiGroup(rowId, generatedPiGroups, createUpdatePis, deShortName) {
-  const piGroups = generatedPiGroups.filter(piGroup =>
+  const piGroups = generatedPiGroups.filter((piGroup) =>
     piGroup.name.includes(`piMappingGroup-${rowId}`)
   )
   let piGroup
@@ -151,7 +151,7 @@ function calculatePiGroup(rowId, generatedPiGroups, createUpdatePis, deShortName
       id: uid,
     }
   }
-  piGroup.programIndicators = createUpdatePis.map(pi => ({ id: pi.id }))
+  piGroup.programIndicators = createUpdatePis.map((pi) => ({ id: pi.id }))
   return piGroup
 }
 

@@ -110,7 +110,7 @@ const Page = ({ metadata, existingConfig }) => {
   const engine = useDataEngine()
 
   useEffect(() => {
-    const newRows = Object.values(dePiMaps).filter(dePiMap => 'newRow' in dePiMap)
+    const newRows = Object.values(dePiMaps).filter((dePiMap) => 'newRow' in dePiMap)
     if (newRows.length > 0) {
       handleRowClick(newRows[0].rowId)
     }
@@ -121,7 +121,7 @@ const Page = ({ metadata, existingConfig }) => {
     setFilteredRowIds(filterRowsByText(dePiMaps, orderedRowIds, filterText))
   }, [orderedRowIds])
 
-  const handleRowClick = rowId => {
+  const handleRowClick = (rowId) => {
     setSelectedRowData(dePiMaps[rowId])
     setShowModal(true)
   }
@@ -151,11 +151,11 @@ const Page = ({ metadata, existingConfig }) => {
     })
   }
 
-  const onDelete = rowId => {
+  const onDelete = (rowId) => {
     const generatedPis = generatedMetadata.generatedPis.programIndicators
     const generatedPiGroups = generatedMetadata.generatedPiGroups.programIndicatorGroups
-    const delPis = generatedPis.filter(pi => pi.description.includes(rowId))
-    const delPiGroups = generatedPiGroups.filter(piGroup => piGroup.name.includes(rowId))
+    const delPis = generatedPis.filter((pi) => pi.description.includes(rowId))
+    const delPiGroups = generatedPiGroups.filter((piGroup) => piGroup.name.includes(rowId))
     const newDePiMaps = removeKey(dePiMaps, rowId)
     setDePiMaps(newDePiMaps)
     setRowsLoading(removeKey(rowsLoading, rowId))
@@ -170,13 +170,13 @@ const Page = ({ metadata, existingConfig }) => {
     })
   }
 
-  const generateMappingComplete = rowId => {
+  const generateMappingComplete = (rowId) => {
     setRowsLoading({ ...rowsLoading, [rowId]: false })
     setShowImportStatus(true)
   }
 
   function generateSelected() {
-    const rowIds = Object.keys(rowsSelected).filter(rowId => rowsSelected[rowId])
+    const rowIds = Object.keys(rowsSelected).filter((rowId) => rowsSelected[rowId])
     if (rowIds.length) {
       generateMapping(rowIds)
     } else {
@@ -192,7 +192,7 @@ const Page = ({ metadata, existingConfig }) => {
     }
   }
 
-  const generateMapping = rowIds => {
+  const generateMapping = (rowIds) => {
     const multiRowUpdate = Array.isArray(rowIds)
     const rowId = multiRowUpdate ? rowIds.shift() : rowIds
     const { dsUid, deUid, piUid, coFilters: coRowFilters } = dePiMaps[rowId]
@@ -258,7 +258,7 @@ const Page = ({ metadata, existingConfig }) => {
     }
   }
 
-  const handleSelectRow = rowId => {
+  const handleSelectRow = (rowId) => {
     setRowsSelected({ ...rowsSelected, [rowId]: !rowsSelected[rowId] })
   }
 
@@ -288,16 +288,16 @@ const Page = ({ metadata, existingConfig }) => {
     setDePiMaps({ ...dePiMaps, [rowId]: newRow })
   }
 
-  const sortByColumn = columnProp => {
+  const sortByColumn = (columnProp) => {
     setOrderedRowIds(sortByKeyValue(dePiMaps, columnProp))
   }
 
-  const handleFilterChange = e => {
+  const handleFilterChange = (e) => {
     setFilterText(e.value)
     setFilteredRowIds(filterRowsByText(dePiMaps, orderedRowIds, e.value))
   }
 
-  const getSummaryInfo = rowId => {
+  const getSummaryInfo = (rowId) => {
     const { deUid, dsUid, coFilters } = dePiMaps[rowId]
     return { piCount: getPiCount(coFilters, deUid, dsUid, metadata) }
   }
@@ -334,7 +334,7 @@ const Page = ({ metadata, existingConfig }) => {
         label="Filter"
         name="filter"
         value={filterText}
-        onChange={e => handleFilterChange(e)}
+        onChange={(e) => handleFilterChange(e)}
       />
       <Table className={classes.dataTable}>
         <TableHead>
@@ -358,7 +358,7 @@ const Page = ({ metadata, existingConfig }) => {
         </TableHead>
         <TableBody>
           {Object.keys(dePiMaps).length > 0 &&
-            filteredRowIds.map(key => {
+            filteredRowIds.map((key) => {
               if (!(key in dePiMaps)) {
                 return
               }
