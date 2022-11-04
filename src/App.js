@@ -40,7 +40,7 @@ const query = {
     resource: 'attributes',
     params: {
       filter: 'id:eq:b8KbU93phhz',
-      fields: 'id',
+      fields: 'id,indicatorAttribute',
     },
   },
   indicatorTypes: {
@@ -59,15 +59,15 @@ const dataStoreMutation = {
 }
 
 const indTypeMutation = {
-  resource: `indicatorTypes`,
+  resource: 'metadata',
   type: 'create',
-  data: config.indType,
+  data: { indicatorTypes: [config.indType] },
 }
 
 const attrMutation = {
-  resource: 'attributes',
+  resource: 'metadata',
   type: 'create',
-  data: config.indCustomAttr,
+  data: { attributes: [config.indCustomAttr] },
 }
 
 const MyApp = () => {
@@ -87,6 +87,12 @@ const MyApp = () => {
       }
       if (metadata.mappingAttr.attributes.length === 0) {
         mutateAttribute()
+      } else {
+        const attr = metadata.mappingAttr.attributes[0]
+        if (!attr?.indicatorAttribute) {
+          console.log('Custom attribute exists but is missing from indicators')
+          mutateAttribute()
+        }
       }
       if (metadata.indicatorTypes.indicatorTypes.length === 0) {
         mutateIndType()

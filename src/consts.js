@@ -7,6 +7,7 @@ export const config = {
     publicAccess: 'r-------',
     valueType: 'TEXT',
     programIndicatorAttribute: true,
+    indicatorAttribute: true,
   },
   indType: {
     name: 'Number (Factor 1)',

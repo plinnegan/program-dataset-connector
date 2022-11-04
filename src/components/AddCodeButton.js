@@ -24,7 +24,7 @@ const AddCodeButton = ({ deUid, setMissingCode, availableDes, setAvailableDes })
   })
 
   const handleClick = () => {
-    console.log(`Updating data element: ${deUid}, adding code eith value: ${deUid}`)
+    console.log(`Updating data element: ${deUid}, adding code with value: ${deUid}`)
     mutate({ id: deUid, code: deUid })
   }
 

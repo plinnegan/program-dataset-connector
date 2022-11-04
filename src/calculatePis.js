@@ -43,7 +43,6 @@ function getEmptyCategoryCoIds(rawCc, coMaps) {
 }
 
 function isNewCoc(result, newCocFilter) {
-  console.log('🚀 ~ file: calculatePis.js ~ line 46 ~ isNewCoc ~ result', result)
   const { id: newId, filter: newFilter, suffix: newSuffix } = newCocFilter
   return !result.some(
     ({ id, filter, suffix }) => id === newId && filter === newFilter && suffix === newSuffix
@@ -53,10 +52,6 @@ function isNewCoc(result, newCocFilter) {
 function getFilters(metaItem, coMaps, config) {
   const rawCc = getCc(metaItem, config)
   const emptyCategoryCoIds = getEmptyCategoryCoIds(rawCc, coMaps)
-  console.log(
-    '🚀 ~ file: calculatePis.js ~ line 48 ~ getFilters ~ emptyCategoryCoIds',
-    emptyCategoryCoIds
-  )
   const rawCocs = rawCc?.categoryOptionCombos
   if (!rawCocs || rawCocs.length === 0) {
     throw new MappingGenerationError(
@@ -82,7 +77,6 @@ function getFilters(metaItem, coMaps, config) {
         )
       } else if (coMaps[co.id].filter === '') {
         if (emptyCategoryCoIds.includes(co.id)) {
-          console.log(`Skipping co ${co.name} because part of an empty category`)
           continue
         } else {
           console.log(`Skipping coc ${coc.name} because co filter ${co.name} is blank`)
@@ -193,21 +187,7 @@ function calculatePiGroup(rowId, generatedPiGroups, createUpdatePis, deShortName
   return piGroup
 }
 
-function getMappingAttr(piUid, attributeValues) {
-  const attrVal = attributeValues.filter(
-    (attrVal) => attrVal.attribute.id === config.indCustomAttr.id
-  )
-  if (attrVal.length === 0) {
-    throw new MappingGenerationError(
-      `Program indicator ${piUid.id} does not have de mapping attribute value for custom ` +
-        `attribute ${config.indCustomAttr.id}`
-    )
-  } else {
-    return attrVal[0].value
-  }
-}
-
-function generateInd(indUid, piSource, indTypeUid) {
+function generateInd(indUid, piSource, indTypeUid, deUid) {
   return {
     id: indUid,
     name: piSource.name,
@@ -222,7 +202,7 @@ function generateInd(indUid, piSource, indTypeUid) {
     indicatorType: { id: indTypeUid },
     attributeValues: [
       {
-        value: getMappingAttr(piSource.id, piSource.attributeValues),
+        value: deUid,
         attribute: {
           id: config.indCustomAttr.id,
         },
@@ -231,7 +211,7 @@ function generateInd(indUid, piSource, indTypeUid) {
   }
 }
 
-function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes) {
+function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes, deUid) {
   const createUpdateInds = []
   const deleteInds = []
   const indTypeUid = indTypes[0].id
@@ -243,7 +223,7 @@ function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes) {
     } else {
       indUid = existingInd[0].id
     }
-    createUpdateInds.push(generateInd(indUid, pi, indTypeUid))
+    createUpdateInds.push(generateInd(indUid, pi, indTypeUid, deUid))
   }
   for (const pi of deletePis) {
     const existingInd = generatedInds.filter((ind) => ind.description === pi.description)
@@ -319,7 +299,8 @@ export default function generateDataMapping(
       createUpdatePis,
       deletePis,
       generatedInds,
-      indTypes
+      indTypes,
+      de.id
     )
     const indGroup = calculateIndGroup(rowId, generatedIndGroups, createUpdateInds)
     metaChanges.createUpdateMetadata.indicators = createUpdateInds

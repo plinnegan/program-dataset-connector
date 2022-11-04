@@ -234,9 +234,7 @@ const Page = ({ metadata, existingConfig }) => {
     const rowId = multiRowUpdate ? rowIds.shift() : rowIds
     const { dsUid, deUid, piUid, coFilters: coRowFilters } = dePiMaps[rowId]
     const deCode = getCodeFromId(metadata.dataElements.dataElements, deUid)
-    console.log('deCode: ', deCode)
     if (deCode === undefined) {
-      console.log('Updating code!')
       mutate({ id: deUid, code: deUid })
     }
     metadata.dataElements.dataElements = updateDes(metadata.dataElements.dataElements, deUid)
