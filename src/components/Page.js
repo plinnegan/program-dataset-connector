@@ -32,6 +32,7 @@ import ImportSummary from './ImportSummary'
 import Mapping from './Mapping'
 import Row from './Row'
 import SortButton from './SortButton'
+import './Page.css'
 
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
@@ -365,6 +366,7 @@ const Page = ({ metadata, existingConfig }) => {
           importResults={importResults}
         />
       )}
+      <div className="versionText">Version: {process.env.REACT_APP_VERSION}</div>
       <InputField
         className={classes.filterInput}
         inputWidth={'20vw'}
