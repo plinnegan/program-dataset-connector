@@ -24,8 +24,40 @@ function getBaseFilter(piUid, allPis) {
   return isBracketed || filter === '' ? filter : `(${filter})`
 }
 
+function getEmptyCategoryCoIds(rawCc, coMaps) {
+  const result = []
+  for (const cat of rawCc.categories) {
+    let allBlank = true
+    for (const co of cat.categoryOptions) {
+      if (coMaps[co.id].filter !== '') {
+        allBlank = false
+        break
+      }
+    }
+    if (allBlank) {
+      console.log(`All categories options are blank for category ${cat.name}`)
+      result.push(...cat.categoryOptions.map(({ id }) => id))
+    }
+  }
+  return result
+}
+
+function isNewCoc(result, newCocFilter) {
+  console.log('🚀 ~ file: calculatePis.js ~ line 46 ~ isNewCoc ~ result', result)
+  const { id: newId, filter: newFilter, suffix: newSuffix } = newCocFilter
+  return !result.some(
+    ({ id, filter, suffix }) => id === newId && filter === newFilter && suffix === newSuffix
+  )
+}
+
 function getFilters(metaItem, coMaps, config) {
-  const rawCocs = getCc(metaItem, config)?.categoryOptionCombos
+  const rawCc = getCc(metaItem, config)
+  const emptyCategoryCoIds = getEmptyCategoryCoIds(rawCc, coMaps)
+  console.log(
+    '🚀 ~ file: calculatePis.js ~ line 48 ~ getFilters ~ emptyCategoryCoIds',
+    emptyCategoryCoIds
+  )
+  const rawCocs = rawCc?.categoryOptionCombos
   if (!rawCocs || rawCocs.length === 0) {
     throw new MappingGenerationError(
       `Data set or data element ${metaItem?.name} does not appear to have any category option combos associated ` +
@@ -49,9 +81,14 @@ function getFilters(metaItem, coMaps, config) {
             'updating to align with the categories (CC override changes can also cause this)'
         )
       } else if (coMaps[co.id].filter === '') {
-        console.log(`Skipping coc ${coc.name} because co filter ${co.name} is blank`)
-        skipCoc = true
-        break
+        if (emptyCategoryCoIds.includes(co.id)) {
+          console.log(`Skipping co ${co.name} because part of an empty category`)
+          continue
+        } else {
+          console.log(`Skipping coc ${coc.name} because co filter ${co.name} is blank`)
+          skipCoc = true
+          break
+        }
       }
       if (cocFilter === '') {
         cocFilter = `(${coMaps[co.id].filter})`
@@ -61,8 +98,9 @@ function getFilters(metaItem, coMaps, config) {
         cocSuffix = `${cocSuffix} (${co.shortName ? co.shortName : co.name})`
       }
     }
-    if (!skipCoc) {
-      result.push({ cocUid: coc.id, filter: cocFilter, suffix: cocSuffix })
+    const newCocFilter = { cocUid: coc.id, filter: cocFilter, suffix: cocSuffix }
+    if (!skipCoc && isNewCoc(result, newCocFilter)) {
+      result.push(newCocFilter)
     }
   }
   return result
