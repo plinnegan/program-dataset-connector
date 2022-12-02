@@ -24,12 +24,12 @@ function getBaseFilter(piUid, allPis) {
   return isBracketed || filter === '' ? filter : `(${filter})`
 }
 
-function getEmptyCategoryCoIds(rawCc, coMaps) {
+export function getEmptyCategoryCoIds(rawCc, coMaps) {
   const result = []
   for (const cat of rawCc.categories) {
     let allBlank = true
     for (const co of cat.categoryOptions) {
-      if (coMaps[co.id].filter !== '') {
+      if (co.name === 'default' || coMaps[co.id].filter !== '') {
         allBlank = false
         break
       }
