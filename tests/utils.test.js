@@ -1,16 +1,16 @@
-import { makeUid, getCosFromMetadata, getCosFromRow } from '../src/utils'
+import { makeUid, getCosFiltersFromMetadata, getCosFromRow } from '../src/utils'
 import { exampleCoMaps, exampleMetadata } from './test-data/utils.testdata'
 
-test('getCosFromMetadata: Gets filters correctly', () => {
+test('getCosFiltersFromMetadata: Gets filters correctly', () => {
   const exampleDe = exampleMetadata.dataElements.dataElements[0]
-  const result = getCosFromMetadata(exampleDe, exampleCoMaps).catId01
+  const result = getCosFiltersFromMetadata(exampleDe, exampleCoMaps).catId01
   expect(result.name).toBe('catId01')
   expect(result.filter).toBe("#{someDeUid} == 'value1'")
 })
 
-test('getCosFromMetadata: Default CO removed', () => {
+test('getCosFiltersFromMetadata: Default CO removed', () => {
   const exampleDe = exampleMetadata.dataElements.dataElements[0]
-  expect(getCosFromMetadata(exampleDe, exampleCoMaps).default).toBeUndefined()
+  expect(getCosFiltersFromMetadata(exampleDe, exampleCoMaps).default).toBeUndefined()
 })
 
 test('getCosFromRow: Check DE and DS mappings included', () => {

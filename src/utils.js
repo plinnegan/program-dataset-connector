@@ -4,7 +4,7 @@
  * @param {object} coMaps JSON object with structure {key1: {name: ..., filter...}, key2: {...}, ...}
  * @returns {object} Object to map from the category options against the DE or DS to the filters defined in coMaps
  */
-export function getCosFromMetadata(metadata, coMaps) {
+export function getCosFiltersFromMetadata(metadata, coMaps) {
   const cos = metadata.categoryCombo.categories.reduce(
     (acc, curr) => [...acc, ...curr.categoryOptions.map((co) => ({ uid: co.id, name: co.name }))],
     []
@@ -74,24 +74,22 @@ export function getCc(metaItem, config) {
  * @returns {object} Object to map from the category options against the DE or DS to the filters defined in coMaps
  */
 export function getCosFromRow(dsUid, deUid, metadata, coMaps) {
-  const des = metadata.dataElements.dataElements.filter((de) => de.id === deUid)
-  let desCos = null
-  const dss = metadata.dataSets.dataSets.filter((ds) => ds.id === dsUid)
-  let dsCos = null
-  if (des.length) {
-    const de = des[0]
+  const de = metadata.dataElements.dataElements.find((de) => de.id === deUid)
+  let desCosFilters = null
+  const ds = metadata.dataSets.dataSets.find((ds) => ds.id === dsUid)
+  let dsCosFilters = null
+  if (de) {
     const ccOverride = getCcOverride(de, dsUid)
     if (ccOverride) {
-      desCos = getCosFromMetadata(ccOverride, coMaps)
+      desCosFilters = getCosFiltersFromMetadata(ccOverride, coMaps)
     } else {
-      desCos = getCosFromMetadata(de, coMaps)
+      desCosFilters = getCosFiltersFromMetadata(de, coMaps)
     }
   }
-  if (dss.length) {
-    const ds = dss[0]
-    dsCos = getCosFromMetadata(ds, coMaps)
+  if (ds) {
+    dsCosFilters = getCosFiltersFromMetadata(ds, coMaps)
   }
-  return { ...desCos, ...dsCos }
+  return { ...desCosFilters, ...dsCosFilters }
 }
 
 /**
