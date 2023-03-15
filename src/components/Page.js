@@ -254,9 +254,29 @@ const Page = ({ metadata, existingConfig }) => {
       if (results.needsDelete) {
         engine.mutate(deleteMutation, {
           variables: { data: results.deleteMetadata },
+          onError: () => {
+            show({
+              msg: `Error deleting previous mapping metadata, please remove references to this metadata in the system before regenerating`,
+              type: 'critical',
+            })
+            setRowsLoading({ ...rowsLoading, [rowId]: false })
+            if (multiRowUpdate && rowIds.length) {
+              generateMapping(rowIds)
+            }
+          },
           onComplete: () => {
             engine.mutate(createUpdateMutation, {
               variables: { data: results.createUpdateMetadata },
+              onError: () => {
+                show({
+                  msg: 'Error importing new mapping metadata.',
+                  type: 'critical',
+                })
+                setRowsLoading({ ...rowsLoading, [rowId]: false })
+                if (multiRowUpdate && rowIds.length) {
+                  generateMapping(rowIds)
+                }
+              },
               onComplete: () => {
                 refetch()
                 setImportResults({ success: true, message: 'Imported successfully' })
