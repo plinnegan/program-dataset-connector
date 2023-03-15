@@ -73,7 +73,9 @@ export function getCc(metaItem, config) {
  * @param {object} coMaps JSON object with structure {key1: {name: ..., filter...}, key2: {...}, ...}
  * @returns {object} Object to map from the category options against the DE or DS to the filters defined in coMaps
  */
-export function getCosFromRow(dsUid, deUid, metadata, coMaps) {
+export function getCosFromRow(rowData, metadata, coMaps) {
+  const { dsUid, deUid, coFilters } = rowData
+  const mergedCoMaps = { ...coMaps, ...coFilters }
   const de = metadata.dataElements.dataElements.find((de) => de.id === deUid)
   let desCosFilters = null
   const ds = metadata.dataSets.dataSets.find((ds) => ds.id === dsUid)
@@ -81,13 +83,13 @@ export function getCosFromRow(dsUid, deUid, metadata, coMaps) {
   if (de) {
     const ccOverride = getCcOverride(de, dsUid)
     if (ccOverride) {
-      desCosFilters = getCosFiltersFromMetadata(ccOverride, coMaps)
+      desCosFilters = getCosFiltersFromMetadata(ccOverride, mergedCoMaps)
     } else {
-      desCosFilters = getCosFiltersFromMetadata(de, coMaps)
+      desCosFilters = getCosFiltersFromMetadata(de, mergedCoMaps)
     }
   }
   if (ds) {
-    dsCosFilters = getCosFiltersFromMetadata(ds, coMaps)
+    dsCosFilters = getCosFiltersFromMetadata(ds, mergedCoMaps)
   }
   return { ...desCosFilters, ...dsCosFilters }
 }

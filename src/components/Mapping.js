@@ -15,8 +15,7 @@ const Mapping = ({ coMaps, rowDataIn, metadata, handleClose, handleUpdate }) => 
   const disableSave = [rowData.dsUid, rowData.deUid, rowData.piUid].includes('') || missingCode
 
   useEffect(() => {
-    const coMappings =
-      rowData?.coFilters || getCosFromRow(rowData.dsUid, rowData.deUid, metadata, coMaps)
+    const coMappings = getCosFromRow(rowData, metadata, coMaps)
     setRowData({ ...rowData, coFilters: coMappings })
     setCoMappings(coMappings)
   }, [rowData.deUid, rowData.dsUid])
