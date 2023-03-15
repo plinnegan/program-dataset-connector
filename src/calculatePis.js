@@ -226,7 +226,7 @@ function calculatePis(rowId, dsUid, deInfo, piUid, coMaps, metadata, generatedPi
   const pi = getByUid(piUid, programIndicators)
   const piUpdates = { deletePis: deleteOldPis }
   piUpdates.createUpdatePis = createPiJSON(rowId, pi, deCode, combinedFilters, combinedUid)
-  return getChangesOnly(piUpdates, 'programIndicator')
+  return getChangesOnly(piUpdates, 'programIndicators')
 }
 
 function calculatePiGroup(rowId, generatedPiGroups, createUpdatePis, deShortName) {
@@ -291,10 +291,8 @@ function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes, deUi
       deleteInds.push({ id: existingInd[0].id })
     }
   }
-  return {
-    createUpdateInds,
-    deleteInds,
-  }
+  const indUpdates = { createUpdateInds, deleteInds }
+  return getChangesOnly(indUpdates, 'indicators')
 }
 
 function calculateIndGroup(rowId, generatedIndGroups, createUpdateInds) {
