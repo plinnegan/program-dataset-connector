@@ -1,4 +1,6 @@
-import { getEmptyCategoryCoIds } from '../src/calculatePis'
+import { getEmptyCategoryCoIds, metadataMatch, getChangesOnly } from '../src/calculatePis'
+import { metadataMatchTests, getChangesOnlyTests } from './test-data/caluclatePis.testdata'
+import { config } from '../src/consts'
 
 describe('getEmptyCategoryCoIds function correctly gets the empty categories', function () {
   const coMaps = {
@@ -50,4 +52,25 @@ describe('getEmptyCategoryCoIds function correctly gets the empty categories', f
     const result = getEmptyCategoryCoIds(testCc, coMaps)
     expect(result).toEqual(['cat3CoUid01', 'cat3CoUid02', 'cat3CoUid03'])
   })
+})
+
+describe('Metadata match tests', () => {
+  for (const testCase of metadataMatchTests) {
+    const { newMeta, oldMeta, metaType, expected, description } = testCase
+    test(`metadataMatch: ${description}`, function () {
+      const matchFields = config.comparisonConfig[metaType].matchFields
+      const result = metadataMatch(newMeta, oldMeta, matchFields)
+      expect(result).toEqual(expected)
+    })
+  }
+})
+
+describe('getChangesOnly tests', () => {
+  for (const testCase of getChangesOnlyTests) {
+    const { metaUpdates, metaType, description, expected } = testCase
+    test(`getChangesOnly: ${description}`, function () {
+      const result = getChangesOnly(metaUpdates, metaType)
+      expect(result).toEqual(expected)
+    })
+  }
 })

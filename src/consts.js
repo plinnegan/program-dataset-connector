@@ -15,6 +15,25 @@ export const config = {
     number: true,
     factor: 1,
   },
+  comparisonConfig: {
+    programIndicators: {
+      newMetadataKey: 'createUpdatePis',
+      oldMetadataKey: 'deletePis',
+      matchFields: ['name', 'shortName', 'expression', 'filter', 'description', 'attributeValues'],
+    },
+    indicators: {
+      newMetadataKey: 'createUpdateInds',
+      oldMetadataKey: 'deleteInds',
+      matchFields: [
+        'name',
+        'shortName',
+        'numeratorDescription',
+        'description',
+        'indicatorType',
+        'attributeValues',
+      ],
+    },
+  },
 }
 
 export const ADDED_MISSING_CODE_MSG =

@@ -148,6 +148,66 @@ function createPiJSON(rowId, pi, deCode, filters, combinedUid) {
   return pis
 }
 
+/**
+ * Compare the two objects by looking at the values for the matchFields and return true if all values match
+ * @param {Object} newMeta New metadata
+ * @param {Object} oldMeta Old metadata
+ * @param {Array} matchFields Array of fields which have to have matching values to be considered a match
+ */
+export function metadataMatch(newMeta, oldMeta, matchFields) {
+  for (const field of matchFields) {
+    try {
+      let newVal = newMeta?.[field]
+      let oldVal = oldMeta?.[field]
+      if (newVal?.id || Array.isArray(newVal)) {
+        newVal = JSON.stringify(newVal)
+        oldVal = JSON.stringify(oldVal)
+      }
+      if (newVal != oldVal) {
+        return false
+      }
+    } catch (e) {
+      return false
+    }
+  }
+  return true
+}
+
+/**
+ * Look at old and new metadata and only return what needs to be updated
+ * For example if a old and new version perfectly match, then no change is
+ * needed so it can be removed from the delete and the update lists. If an
+ * updated has a short name that matches deleted but the filters are different
+ * then the PI should be updated so it can be removed from the delete list
+ * @param {Object} metaUpdates Object holding old and new metadata
+ * @param {string} metaType Type of metadata to compare
+ */
+export function getChangesOnly(metaUpdates, metaType) {
+  const { newMetadataKey, oldMetadataKey, matchFields } = config.comparisonConfig[metaType]
+  const newMetadata = metaUpdates[newMetadataKey]
+  const oldMetadata = metaUpdates[oldMetadataKey]
+  const createUpdateMetaResult = []
+  let deleteMetaResult = oldMetadata
+  for (const metadata of newMetadata) {
+    const oldMatch = oldMetadata.find(({ shortName }) => shortName === metadata.shortName)
+    if (oldMatch) {
+      // If there's an existing match, then remove it from the delete list
+      deleteMetaResult = deleteMetaResult.filter(
+        ({ shortName }) => shortName !== metadata.shortName
+      )
+      // If the PI existed in some form before, determine if it's been changed or not
+      if (!metadataMatch(metadata, oldMatch, matchFields)) {
+        // If not a full match, then PI only needs updating, so remove from delete list and add to createUpdate list
+        createUpdateMetaResult.push(metadata)
+      }
+    } else {
+      // If no match for new metadata, then add to createUpdate list and nothing to remove
+      createUpdateMetaResult.push(metadata)
+    }
+  }
+  return { [newMetadataKey]: createUpdateMetaResult, [oldMetadataKey]: deleteMetaResult }
+}
+
 function calculatePis(rowId, dsUid, deInfo, piUid, coMaps, metadata, generatedPis) {
   const { dataSets, dataElements, programIndicators } = {
     ...metadata.dataSets,
@@ -166,7 +226,7 @@ function calculatePis(rowId, dsUid, deInfo, piUid, coMaps, metadata, generatedPi
   const pi = getByUid(piUid, programIndicators)
   const piUpdates = { deletePis: deleteOldPis }
   piUpdates.createUpdatePis = createPiJSON(rowId, pi, deCode, combinedFilters, combinedUid)
-  return piUpdates
+  return getChangesOnly(piUpdates, 'programIndicator')
 }
 
 function calculatePiGroup(rowId, generatedPiGroups, createUpdatePis, deShortName) {
