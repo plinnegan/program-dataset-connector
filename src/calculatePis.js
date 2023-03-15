@@ -86,10 +86,10 @@ function getFilters(metaItem, coMaps, config) {
       }
       if (cocFilter === '') {
         cocFilter = `(${coMaps[co.id].filter})`
-        cocSuffix = ` (${co.shortName ? co.shortName : co.name})`
+        cocSuffix = ` (${co?.shortName || co.name})`
       } else {
         cocFilter = `${cocFilter} && (${coMaps[co.id].filter})`
-        cocSuffix = `${cocSuffix} (${co.shortName ? co.shortName : co.name})`
+        cocSuffix = `${cocSuffix} (${co?.shortName || co.name})`
       }
     }
     const newCocFilter = { cocUid: coc.id, filter: cocFilter, suffix: cocSuffix }

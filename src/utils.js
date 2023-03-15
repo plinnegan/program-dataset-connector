@@ -177,9 +177,11 @@ export function filterRowsByText(dePiMaps, orderedRowIds, text) {
  */
 export function orderCos(coc) {
   const { name, id, categoryOptions } = coc
+  const searchCocName = name + ',' // Added so indexOf matches full name (COs are separated by commas in the COC name)
   const indexes = {}
   for (const co of categoryOptions) {
-    indexes[name.indexOf(co.name)] = co // Store each co name by it's location in the coc name
+    const searchCoName = co.name + ','
+    indexes[searchCocName.indexOf(searchCoName)] = co // Store each co name by it's location in the coc name
   }
   // Use the fact that js auto orders numerical keys in objects to sort automatically
   return { id, name, categoryOptions: Object.values(indexes) }
