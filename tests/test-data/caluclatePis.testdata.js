@@ -236,7 +236,7 @@ export const getChangesOnlyTests = [
     expected: {
       createUpdatePis: [
         {
-          id: 'abc',
+          id: 'xyz',
           name: 'PI 1',
           shortName: 'PI1',
           description: 'PI One',

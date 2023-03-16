@@ -1,4 +1,10 @@
-import { makeUid, getCosFiltersFromMetadata, getCosFromRow, orderCos } from '../src/utils'
+import {
+  makeUid,
+  getCosFiltersFromMetadata,
+  getCosFromRow,
+  orderCos,
+  updateGroupMembers,
+} from '../src/utils'
 import { exampleCoMaps, exampleMetadata } from './test-data/utils.testdata'
 
 test('getCosFiltersFromMetadata: Gets filters correctly', () => {
@@ -86,4 +92,14 @@ test('orderCos: Correctly includes cos with partial name matches', () => {
       { id: 'coTestUid01', name: 'Female sex worker' },
     ],
   })
+})
+
+test('Update group members correctly adds and removes members', () => {
+  const group = {
+    programIndicators: [{ id: 'abc' }, { id: 'bcd' }, { id: 'cde' }, { id: 'def' }],
+  }
+  const createUpdateMembers = [{ id: 'abc' }, { id: 'efg' }]
+  const deleteMembers = [{ id: 'bcd' }, { id: 'fgh' }]
+  const expected = [{ id: 'abc' }, { id: 'cde' }, { id: 'def' }, { id: 'efg' }]
+  expect(updateGroupMembers(group, createUpdateMembers, deleteMembers)).toEqual(expected)
 })

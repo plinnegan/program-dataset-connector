@@ -216,6 +216,19 @@ export const updateDes = (availableDes, deUid) => {
   return desOut
 }
 
+export function updateGroupMembers(group, createUpdateMembers, deleteMembers) {
+  if (!group?.programIndicators && !group?.indicators) {
+    throw new Error('Can only update PI and indicator groups currently')
+  }
+  const existingMembers = group?.programIndicators || group?.indicators
+  const deleteIds = deleteMembers.map(({ id }) => id)
+  const membersOut = existingMembers.filter(({ id }) => !deleteIds.includes(id))
+  const membersOutIds = membersOut.map(({ id }) => id)
+  const newMembers = createUpdateMembers.filter(({ id }) => !membersOutIds.includes(id))
+  membersOut.push(...newMembers)
+  return membersOut
+}
+
 function getCosByCat(items, itemUid, mapCoUids, config) {
   const counts = []
   for (const item of items) {

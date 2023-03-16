@@ -1,6 +1,6 @@
 import { config } from './consts'
 import { MappingGenerationError } from './Errors'
-import { makeUid, orderCos, getCc } from './utils'
+import { makeUid, orderCos, getCc, updateGroupMembers } from './utils'
 
 class PiCalculationError extends Error {
   constructor(message) {
@@ -198,6 +198,8 @@ export function getChangesOnly(metaUpdates, metaType) {
       // If the PI existed in some form before, determine if it's been changed or not
       if (!metadataMatch(metadata, oldMatch, matchFields)) {
         // If not a full match, then PI only needs updating, so remove from delete list and add to createUpdate list
+        // Also swap to use original PIs id
+        metadata.id = oldMatch.id
         createUpdateMetaResult.push(metadata)
       }
     } else {
@@ -229,21 +231,21 @@ function calculatePis(rowId, dsUid, deInfo, piUid, coMaps, metadata, generatedPi
   return getChangesOnly(piUpdates, 'programIndicators')
 }
 
-function calculatePiGroup(rowId, generatedPiGroups, createUpdatePis, deShortName) {
-  const piGroups = generatedPiGroups.filter((piGroup) =>
+function calculatePiGroup(rowId, generatedPiGroups, piChanges, deShortName) {
+  const { createUpdatePis, deletePis } = piChanges
+  let piGroup = generatedPiGroups.find((piGroup) =>
     piGroup.name.includes(`piMappingGroup-${rowId}`)
   )
-  let piGroup
-  if (piGroups.length) {
-    piGroup = piGroups[0]
+  if (piGroup) {
+    piGroup.programIndicators = updateGroupMembers(piGroup, createUpdatePis, deletePis)
   } else {
     const uid = makeUid()
     piGroup = {
       name: `piMappingGroup-${rowId} Target DE: ${deShortName} (generated)`,
       id: uid,
+      programIndicators: createUpdatePis.map((pi) => ({ id: pi.id })),
     }
   }
-  piGroup.programIndicators = createUpdatePis.map((pi) => ({ id: pi.id }))
   return piGroup
 }
 
@@ -295,13 +297,14 @@ function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes, deUi
   return getChangesOnly(indUpdates, 'indicators')
 }
 
-function calculateIndGroup(rowId, generatedIndGroups, createUpdateInds) {
-  const IndGroups = generatedIndGroups.filter((indGroup) =>
+function calculateIndGroup(rowId, generatedIndGroups, indChanges) {
+  const { createUpdateInds, deleteInds } = indChanges
+  let indGroup = generatedIndGroups.find((indGroup) =>
     indGroup.name.includes(`indMappingGroup-${rowId}`)
   )
-  let indGroup
-  if (IndGroups.length) {
-    indGroup = IndGroups[0]
+
+  if (indGroup) {
+    indGroup.indicators = updateGroupMembers(indGroup, createUpdateInds, deleteInds)
   } else {
     const uid = makeUid()
     indGroup = {
@@ -309,9 +312,9 @@ function calculateIndGroup(rowId, generatedIndGroups, createUpdateInds) {
         `indMappingGroup-${rowId} (/api/analytics/dataValueSet.json?dimension=dx:IN_GROUP-` +
         `${uid}&outputIdScheme=ATTRIBUTE:${config.indCustomAttr.id})  (generated)`,
       id: uid,
+      indicators: createUpdateInds.map((ind) => ({ id: ind.id })),
     }
   }
-  indGroup.indicators = createUpdateInds.map((ind) => ({ id: ind.id }))
   return indGroup
 }
 
@@ -328,18 +331,13 @@ export default function generateDataMapping(
   const indTypes = baseMetadata.indicatorTypes.indicatorTypes
   const generatedPis = generatedMetadata.generatedPis.programIndicators
   const generatedPiGroups = generatedMetadata.generatedPiGroups.programIndicatorGroups
-  const { createUpdatePis, deletePis } = calculatePis(
-    rowId,
-    dsUid,
-    de,
-    piUid,
-    coMaps,
-    baseMetadata,
-    generatedPis
-  )
-
+  const piChanges = calculatePis(rowId, dsUid, de, piUid, coMaps, baseMetadata, generatedPis)
+  const { createUpdatePis, deletePis } = piChanges
+  if (createUpdatePis.length === 0 && deletePis.length === 0) {
+    return null
+  }
   const des = baseMetadata.dataElements.dataElements.filter(({ id }) => id === de.id)
-  const piGroup = calculatePiGroup(rowId, generatedPiGroups, createUpdatePis, des[0].shortName)
+  const piGroup = calculatePiGroup(rowId, generatedPiGroups, piChanges, des[0].shortName)
   const metaChanges = {
     createUpdateMetadata: {
       programIndicators: createUpdatePis,
@@ -353,14 +351,9 @@ export default function generateDataMapping(
   if (generateIndicators) {
     const generatedInds = generatedMetadata.generatedInds.indicators
     const generatedIndGroups = generatedMetadata.generatedIndGroups.indicatorGroups
-    const { createUpdateInds, deleteInds } = calculateInds(
-      createUpdatePis,
-      deletePis,
-      generatedInds,
-      indTypes,
-      de.id
-    )
-    const indGroup = calculateIndGroup(rowId, generatedIndGroups, createUpdateInds)
+    const indChanges = calculateInds(createUpdatePis, deletePis, generatedInds, indTypes, de.id)
+    const { createUpdateInds, deleteInds } = indChanges
+    const indGroup = calculateIndGroup(rowId, generatedIndGroups, indChanges)
     metaChanges.createUpdateMetadata.indicators = createUpdateInds
     metaChanges.createUpdateMetadata.indicatorGroups = [indGroup]
     metaChanges.deleteMetadata.indicators = deleteInds

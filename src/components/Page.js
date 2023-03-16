@@ -62,7 +62,7 @@ function getGeneratedMeta(generateIndicators) {
       params: {
         filter: 'name:like:rowId-',
         fields:
-          'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
+          'id,name,shortName,expression,filter,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
         paging: 'false',
       },
     },
@@ -70,7 +70,7 @@ function getGeneratedMeta(generateIndicators) {
       resource: 'programIndicatorGroups',
       params: {
         filter: 'name:like:rowId-',
-        fields: 'id,name',
+        fields: 'id,name,programIndicators',
         paging: 'false',
       },
     },
@@ -81,7 +81,7 @@ function getGeneratedMeta(generateIndicators) {
       params: {
         filter: 'name:like:rowId-',
         fields:
-          'id,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo',
+          'id,name,shortName,numeratorDescription,indicatorType,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
         paging: 'false',
       },
     }
@@ -89,7 +89,7 @@ function getGeneratedMeta(generateIndicators) {
       resource: 'indicatorGroups',
       params: {
         filter: 'name:like:rowId-',
-        fields: 'id,name',
+        fields: 'id,name,indicators',
         paging: 'false',
       },
     }
@@ -251,6 +251,17 @@ const Page = ({ metadata, existingConfig }) => {
         generatedMetadata,
         existingConfig?.generateIndicators
       )
+      if (results === null) {
+        show({
+          msg: 'No updates detected',
+          type: 'success',
+        })
+        setRowsLoading({ ...rowsLoading, [rowId]: false })
+        if (multiRowUpdate && rowIds.length) {
+          generateMapping(rowIds)
+        }
+        return
+      }
       if (results.needsDelete) {
         engine.mutate(deleteMutation, {
           variables: { data: results.deleteMetadata },
@@ -291,6 +302,16 @@ const Page = ({ metadata, existingConfig }) => {
       } else {
         engine.mutate(createUpdateMutation, {
           variables: { data: results.createUpdateMetadata },
+          onError: () => {
+            show({
+              msg: 'Error importing new mapping metadata.',
+              type: 'critical',
+            })
+            setRowsLoading({ ...rowsLoading, [rowId]: false })
+            if (multiRowUpdate && rowIds.length) {
+              generateMapping(rowIds)
+            }
+          },
           onComplete: () => {
             refetch()
             setImportResults({ success: true, message: 'Imported successfully' })
