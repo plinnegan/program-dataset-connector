@@ -1,6 +1,6 @@
 export const metadataMatchTests = [
   {
-    description: 'Returns false when no match',
+    description: 'Returns false when no match (programIndicators)',
     newMeta: {
       id: 'abc',
       name: 'PI 1',
@@ -21,7 +21,7 @@ export const metadataMatchTests = [
     expected: false,
   },
   {
-    description: 'Returns false for partial match',
+    description: 'Returns false for partial match (programIndicators)',
     newMeta: {
       id: 'abc',
       name: 'PI 1',
@@ -42,7 +42,7 @@ export const metadataMatchTests = [
     expected: false,
   },
   {
-    description: 'Returns true for full match',
+    description: 'Returns true for full match (programIndicators)',
     newMeta: {
       id: 'abc',
       name: 'PI 1',
@@ -61,6 +61,70 @@ export const metadataMatchTests = [
       extraField: 'Extra value',
     },
     metaType: 'programIndicators',
+    expected: true,
+  },
+  {
+    description: 'Returns false when no match (indicators)',
+    newMeta: {
+      id: 'abc',
+      name: 'ind 1',
+      shortName: 'I1',
+      description: 'Ind One',
+      numeratorDescription: 'Description numerator 1',
+      indicatorType: { id: 'indTypeUid1' },
+    },
+    oldMeta: {
+      id: 'xyz',
+      name: 'Ind 999',
+      shortName: 'I999',
+      description: 'Ind Nineninenine',
+      numeratorDescription: 'Description numerator 999',
+      indicatorType: { id: 'indTypeUid1' },
+    },
+    metaType: 'indicators',
+    expected: false,
+  },
+  {
+    description: 'Returns false for partial match (indicators)',
+    newMeta: {
+      id: 'abc',
+      name: 'ind 1',
+      shortName: 'I1',
+      description: 'Ind One',
+      numeratorDescription: 'Description numerator 1',
+      indicatorType: { id: 'indTypeUid1' },
+    },
+    oldMeta: {
+      id: 'xyz',
+      name: 'Ind 999',
+      shortName: 'I1',
+      description: 'Ind Nineninenine',
+      numeratorDescription: 'Description numerator 999',
+      indicatorType: { id: 'indTypeUid1' },
+    },
+    metaType: 'indicators',
+    expected: false,
+  },
+  {
+    description: 'Returns true for full match (indicators)',
+    newMeta: {
+      id: 'abc',
+      name: 'ind 1',
+      shortName: 'I1',
+      description: 'Ind One',
+      numeratorDescription: 'Description numerator 1',
+      indicatorType: { id: 'indTypeUid1' },
+    },
+    oldMeta: {
+      id: 'xyz',
+      name: 'ind 1',
+      shortName: 'I1',
+      description: 'Ind One',
+      numeratorDescription: 'Description numerator 1',
+      indicatorType: { id: 'indTypeUid1' },
+      extraField: 'Extra value',
+    },
+    metaType: 'indicators',
     expected: true,
   },
 ]
