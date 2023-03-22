@@ -1,10 +1,11 @@
-import { useDataQuery, useDataMutation } from '@dhis2/app-runtime'
+import { useDataQuery, useDataMutation, useDataEngine } from '@dhis2/app-runtime'
 import React, { useState, useEffect } from 'react'
 import classes from './App.module.css'
 import ConnectDataStore from './components/ConnectDataStore'
 import Error from './components/Error'
 import Loader from './components/Loader'
 import { config } from './consts'
+import { sameKeys } from './utils'
 
 const ccInfo =
   'categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name,shortName)),categories(id,categoryOptions(id,name)))'
@@ -52,10 +53,30 @@ const query = {
   },
 }
 
+const initConfig = { dePiMaps: {}, coMaps: {}, generateIndicators: false }
+
+const dataStoreKeysQuery = {
+  keys: {
+    resource: `dataStore/${config.dataStoreName}`,
+  },
+}
+
+const dataStoreConfigQuery = {
+  currentConfig: {
+    resource: `dataStore/${config.dataStoreName}/metadata`,
+  },
+}
+
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
   type: 'create',
-  data: { dePiMaps: {}, coMaps: {}, generateIndicators: false },
+  data: initConfig,
+}
+
+const updateConfigMutation = {
+  resource: `dataStore/${config.dataStoreName}/metadata`,
+  type: 'update',
+  data: ({ data }) => ({ ...initConfig, ...(data || {}) }),
 }
 
 const indTypeMutation = {
@@ -79,11 +100,29 @@ const MyApp = () => {
   })
   const [mutateAttribute] = useDataMutation(attrMutation)
   const { dataStoreName } = config
+  const engine = useDataEngine()
+
+  const checkCurrentDsConfig = async () => {
+    const keyCheck = await engine.query(dataStoreKeysQuery)
+    if (!keyCheck?.keys?.includes('metadata')) {
+      mutateDataStore()
+    } else {
+      const configCheck = await engine.query(dataStoreConfigQuery)
+      const currentConfig = configCheck?.currentConfig
+      if (!sameKeys(initConfig, currentConfig)) {
+        console.log('Missing key so updating DS')
+        console.log({ ...initConfig, ...currentConfig })
+        engine.mutate(updateConfigMutation, { variables: { data: currentConfig } })
+      }
+    }
+  }
 
   useEffect(() => {
     if (metadata) {
       if (!metadata.dataStore.includes(dataStoreName)) {
         mutateDataStore()
+      } else {
+        checkCurrentDsConfig()
       }
       if (metadata.mappingAttr.attributes.length === 0) {
         mutateAttribute()

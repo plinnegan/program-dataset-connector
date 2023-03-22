@@ -268,3 +268,9 @@ export function getPiCount(coMaps, deUid, dsUid, metadata) {
   ]
   return cosByCat.reduce((acc, curr) => Math.max(1, curr) * acc, 1)
 }
+
+export function sameKeys(objOne, objTwo) {
+  const objOneKeys = Object.keys(objOne).sort()
+  const objTwoKeys = Object.keys(objTwo).sort()
+  return objOneKeys.join() === objTwoKeys.join()
+}
