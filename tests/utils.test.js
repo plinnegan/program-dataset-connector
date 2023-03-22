@@ -4,6 +4,7 @@ import {
   getCosFromRow,
   orderCos,
   updateGroupMembers,
+  sameKeys,
 } from '../src/utils'
 import { exampleCoMaps, exampleMetadata } from './test-data/utils.testdata'
 
@@ -102,4 +103,23 @@ test('Update group members correctly adds and removes members', () => {
   const deleteMembers = [{ id: 'bcd' }, { id: 'fgh' }]
   const expected = [{ id: 'abc' }, { id: 'cde' }, { id: 'def' }, { id: 'efg' }]
   expect(updateGroupMembers(group, createUpdateMembers, deleteMembers)).toEqual(expected)
+})
+
+describe('sameKeys tests', () => {
+  const o1 = { 1: 'val1', two: 'val2', testKey: 'val3' }
+
+  test('Returns true when object have matching keys', () => {
+    const o2 = { two: 'diffVal1', testKey: 'diffVal2', 1: 'diffVal3' }
+    expect(sameKeys(o1, o2)).toEqual(true)
+  })
+
+  test('Returns false when missing keys', () => {
+    const o2 = { 1: 'val1', two: 'val2' }
+    expect(sameKeys(o1, o2)).toEqual(false)
+  })
+
+  test('Returns false when extra keys', () => {
+    const o2 = { 1: 'val1', two: 'val2', testKey: 'val3', extra: 'extraVal' }
+    expect(sameKeys(o1, o2)).toEqual(false)
+  })
 })
