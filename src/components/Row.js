@@ -2,6 +2,7 @@ import { Button, ButtonStrip, Checkbox, TableRow, TableCell, CircularLoader } fr
 import PropTypes from 'prop-types'
 import React, { useState } from 'react'
 import classes from '../App.module.css'
+import ConfirmDelete from './ConfirmDelete'
 import ConfirmGenerationModal from './ConfirmGenerationModal'
 
 const Row = ({
@@ -18,6 +19,7 @@ const Row = ({
   getSummaryInfo,
 }) => {
   const [confirmGeneration, setConfirmGeneration] = useState(false)
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false)
 
   const handleGenerateRow = () => {
     setConfirmGeneration(true)
@@ -25,6 +27,12 @@ const Row = ({
 
   return (
     <>
+      {showConfirmDelete && (
+        <ConfirmDelete
+          onDelete={() => handleDelete(rowId)}
+          closeModal={() => setShowConfirmDelete(false)}
+        />
+      )}
       {confirmGeneration && (
         <ConfirmGenerationModal
           generateMapping={generateMapping}
@@ -50,7 +58,7 @@ const Row = ({
             <Button disabled={loading} primary onClick={handleGenerateRow}>
               Generate Mapping
             </Button>
-            <Button disabled={loading} destructive onClick={() => handleDelete(rowId)}>
+            <Button disabled={loading} destructive onClick={() => setShowConfirmDelete(true)}>
               Delete
             </Button>
           </ButtonStrip>
