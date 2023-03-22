@@ -175,7 +175,13 @@ const Page = ({ metadata, existingConfig }) => {
     })
   }
 
-  const onDelete = (rowId) => {
+  const showDeleteError = () =>
+    show({
+      msg: `Error deleting mapping metadata, please remove references to this metadata in the system before deleting.`,
+      type: 'critical',
+    })
+
+  const onDelete = async (rowId) => {
     const generatedPis = generatedMetadata.generatedPis.programIndicators
     const generatedPiGroups = generatedMetadata.generatedPiGroups.programIndicatorGroups
     const delPis = generatedPis.filter((pi) => pi.description.includes(rowId))
@@ -194,17 +200,31 @@ const Page = ({ metadata, existingConfig }) => {
     }
 
     const newDePiMaps = removeKey(dePiMaps, rowId)
-    setDePiMaps(newDePiMaps)
     setRowsLoading(removeKey(rowsLoading, rowId))
     setRowsSelected(removeKey(rowsSelected, rowId))
-    engine.mutate(dataStoreMutation, {
-      variables: { data: { ...existingConfig, dePiMaps: newDePiMaps, coMaps: coMaps } },
-    })
-    engine.mutate(deleteMutation, {
-      variables: {
-        data: delData,
-      },
-    })
+    try {
+      const res = await engine.mutate(deleteMutation, {
+        variables: {
+          data: delData,
+        },
+        onError: showDeleteError,
+      })
+      if (res.status === 'OK') {
+        const dsRes = await engine.mutate(dataStoreMutation, {
+          variables: { data: { ...existingConfig, dePiMaps: newDePiMaps, coMaps: coMaps } },
+          onError: showDeleteError,
+        })
+        if (dsRes.status === 'OK') {
+          setDePiMaps(newDePiMaps)
+        } else {
+          showDeleteError()
+        }
+      } else {
+        showDeleteError()
+      }
+    } catch (err) {
+      showDeleteError()
+    }
   }
 
   const generateMappingComplete = (rowId) => {
