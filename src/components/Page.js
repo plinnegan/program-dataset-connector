@@ -1,4 +1,4 @@
-import { useDataEngine, useDataQuery, useDataMutation, useAlert } from '@dhis2/app-runtime'
+import { useDataEngine, useDataMutation, useAlert } from '@dhis2/app-runtime'
 import { addCodeMutation } from '../mutations'
 import {
   Table,
@@ -33,6 +33,7 @@ import Mapping from './Mapping'
 import Row from './Row'
 import SortButton from './SortButton'
 import './Page.css'
+import useDataQueryPaged from '../hooks/useDataQueryPaged'
 
 const dataStoreMutation = {
   resource: `dataStore/${config.dataStoreName}/metadata`,
@@ -118,7 +119,10 @@ const Page = ({ metadata, existingConfig }) => {
   })
   const [selectedRowData, setSelectedRowData] = useState({})
   const generatedMeta = getGeneratedMeta(existingConfig?.generateIndicators)
-  const { data: generatedMetadata, refetch } = useDataQuery(generatedMeta)
+  const engine = useDataEngine()
+  // const { data: generatedMetadata, refetch } = useDataQuery(generatedMeta)
+  const { data: generatedMetadata, refetch: refetch } = useDataQueryPaged(engine, generatedMeta)
+  console.log('generatedMetadata: ', generatedMetadata)
   const { show } = useAlert(
     ({ msg }) => msg,
     ({ type }) => ({ [type]: true })
@@ -131,7 +135,6 @@ const Page = ({ metadata, existingConfig }) => {
       show({ msg: ERROR_ADDING_CODE_MSG, type: 'critical' })
     },
   })
-  const engine = useDataEngine()
 
   useEffect(() => {
     const newRows = Object.values(dePiMaps).filter((dePiMap) => 'newRow' in dePiMap)
