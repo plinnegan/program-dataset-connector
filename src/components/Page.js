@@ -64,7 +64,6 @@ function getGeneratedMeta(generateIndicators) {
         filter: 'name:like:rowId-',
         fields:
           'id,name,shortName,expression,filter,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
-        paging: 'false',
       },
     },
     generatedPiGroups: {
@@ -72,7 +71,6 @@ function getGeneratedMeta(generateIndicators) {
       params: {
         filter: 'name:like:rowId-',
         fields: 'id,name,programIndicators',
-        paging: 'false',
       },
     },
   }
@@ -83,7 +81,6 @@ function getGeneratedMeta(generateIndicators) {
         filter: 'name:like:rowId-',
         fields:
           'id,name,shortName,numeratorDescription,indicatorType,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
-        paging: 'false',
       },
     }
     generatedMeta.generatedIndGroups = {
@@ -91,7 +88,6 @@ function getGeneratedMeta(generateIndicators) {
       params: {
         filter: 'name:like:rowId-',
         fields: 'id,name,indicators',
-        paging: 'false',
       },
     }
   }
@@ -121,7 +117,14 @@ const Page = ({ metadata, existingConfig }) => {
   const generatedMeta = getGeneratedMeta(existingConfig?.generateIndicators)
   const engine = useDataEngine()
   // const { data: generatedMetadata, refetch } = useDataQuery(generatedMeta)
-  const { data: generatedMetadata, refetch: refetch } = useDataQueryPaged(engine, generatedMeta)
+  const {
+    data: generatedMetadata,
+    loading,
+    progress,
+    refetch: refetch,
+  } = useDataQueryPaged(engine, generatedMeta, {
+    pageSize: 5,
+  })
   console.log('generatedMetadata: ', generatedMetadata)
   const { show } = useAlert(
     ({ msg }) => msg,
@@ -404,95 +407,102 @@ const Page = ({ metadata, existingConfig }) => {
 
   return (
     <div className={classes.pageDiv}>
-      <h1>Program Dataset Connector</h1>
-      <p>
-        This application is used to link program indicators to a data elements in a specific data
-        set. This is used to generate copies of the program indicator for each of the
-        disaggregations assigned to the data element in the data set (including dissagregations on
-        the data set itself)
-      </p>
-      <br />
-      <br />
-      {showModal && (
-        <Mapping
-          coMaps={coMaps}
-          rowDataIn={selectedRowData}
-          handleClose={handleClose}
-          handleUpdate={handleRowUpdate}
-          metadata={metadata}
-        ></Mapping>
+      {loading || !generatedMetadata ? (
+        // TODO: Replace this with a loading bar based on the progress variable
+        <p>Loading existing PIs {progress}</p>
+      ) : (
+        <>
+          <h1>Program Dataset Connector</h1>
+          <p>
+            This application is used to link program indicators to a data elements in a specific
+            data set. This is used to generate copies of the program indicator for each of the
+            disaggregations assigned to the data element in the data set (including dissagregations
+            on the data set itself)
+          </p>
+          <br />
+          <br />
+          {showModal && (
+            <Mapping
+              coMaps={coMaps}
+              rowDataIn={selectedRowData}
+              handleClose={handleClose}
+              handleUpdate={handleRowUpdate}
+              metadata={metadata}
+            ></Mapping>
+          )}
+          {showImportStatus && (
+            <ImportSummary
+              handleClose={() => setShowImportStatus(false)}
+              importResults={importResults}
+            />
+          )}
+          <div className="versionText">Version: {process.env.REACT_APP_VERSION}</div>
+          <InputField
+            className={classes.filterInput}
+            inputWidth={'20vw'}
+            label="Filter"
+            name="filter"
+            value={filterText}
+            onChange={(e) => handleFilterChange(e)}
+          />
+          <Table className={classes.dataTable}>
+            <TableHead>
+              <TableRowHead>
+                <TableCellHead key="selected">
+                  <Checkbox checked={allRowsSelected} onChange={handleAllRowsSelected} />
+                </TableCellHead>
+                <TableCellHead key="rowId">Row ID</TableCellHead>
+                <TableCellHead key="dsName">
+                  Data Set <SortButton handleClick={() => sortByColumn('dsName')} />
+                </TableCellHead>
+                <TableCellHead key="deName">
+                  Data Element <SortButton handleClick={() => sortByColumn('deName')} />
+                </TableCellHead>
+                <TableCellHead key="piName">
+                  Program Indicator <SortButton handleClick={() => sortByColumn('piName')} />
+                </TableCellHead>
+                <TableCellHead key="edit"></TableCellHead>
+                <TableCellHead key="status"></TableCellHead>
+              </TableRowHead>
+            </TableHead>
+            <TableBody>
+              {Object.keys(dePiMaps).length > 0 &&
+                filteredRowIds.map((key) => {
+                  if (!(key in dePiMaps)) {
+                    return
+                  }
+                  const { dsName, deName, piName } = dePiMaps[key]
+                  return (
+                    <Row
+                      key={key}
+                      dsName={dsName}
+                      deName={deName}
+                      piName={piName}
+                      rowId={key}
+                      handleClick={handleRowClick}
+                      generateMapping={generateMapping}
+                      handleDelete={onDelete}
+                      loading={rowsLoading[key]}
+                      rowSelected={rowsSelected[key]}
+                      selectRow={handleSelectRow}
+                      getSummaryInfo={getSummaryInfo}
+                    />
+                  )
+                })}
+            </TableBody>
+            <TableFoot>
+              <TableRow>
+                <TableCell colSpan="5">
+                  <Button primary onClick={() => addRow()}>
+                    Add row
+                  </Button>
+                </TableCell>
+              </TableRow>
+            </TableFoot>
+          </Table>
+          <ActionButtons addRow={addRow} generateSelected={generateSelected} />
+        </>
       )}
-      {showImportStatus && (
-        <ImportSummary
-          handleClose={() => setShowImportStatus(false)}
-          importResults={importResults}
-        />
-      )}
-      <div className="versionText">Version: {process.env.REACT_APP_VERSION}</div>
-      <InputField
-        className={classes.filterInput}
-        inputWidth={'20vw'}
-        label="Filter"
-        name="filter"
-        value={filterText}
-        onChange={(e) => handleFilterChange(e)}
-      />
-      <Table className={classes.dataTable}>
-        <TableHead>
-          <TableRowHead>
-            <TableCellHead key="selected">
-              <Checkbox checked={allRowsSelected} onChange={handleAllRowsSelected} />
-            </TableCellHead>
-            <TableCellHead key="rowId">Row ID</TableCellHead>
-            <TableCellHead key="dsName">
-              Data Set <SortButton handleClick={() => sortByColumn('dsName')} />
-            </TableCellHead>
-            <TableCellHead key="deName">
-              Data Element <SortButton handleClick={() => sortByColumn('deName')} />
-            </TableCellHead>
-            <TableCellHead key="piName">
-              Program Indicator <SortButton handleClick={() => sortByColumn('piName')} />
-            </TableCellHead>
-            <TableCellHead key="edit"></TableCellHead>
-            <TableCellHead key="status"></TableCellHead>
-          </TableRowHead>
-        </TableHead>
-        <TableBody>
-          {Object.keys(dePiMaps).length > 0 &&
-            filteredRowIds.map((key) => {
-              if (!(key in dePiMaps)) {
-                return
-              }
-              const { dsName, deName, piName } = dePiMaps[key]
-              return (
-                <Row
-                  key={key}
-                  dsName={dsName}
-                  deName={deName}
-                  piName={piName}
-                  rowId={key}
-                  handleClick={handleRowClick}
-                  generateMapping={generateMapping}
-                  handleDelete={onDelete}
-                  loading={rowsLoading[key]}
-                  rowSelected={rowsSelected[key]}
-                  selectRow={handleSelectRow}
-                  getSummaryInfo={getSummaryInfo}
-                />
-              )
-            })}
-        </TableBody>
-        <TableFoot>
-          <TableRow>
-            <TableCell colSpan="5">
-              <Button primary onClick={() => addRow()}>
-                Add row
-              </Button>
-            </TableCell>
-          </TableRow>
-        </TableFoot>
-      </Table>
-      <ActionButtons addRow={addRow} generateSelected={generateSelected} />
     </div>
   )
 }
