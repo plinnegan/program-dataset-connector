@@ -269,7 +269,7 @@ const Page = ({ metadata, existingConfig }) => {
         coFilters,
         metadata,
         generatedMetadata,
-        existingConfig?.generateIndicators
+        existingConfig
       )
       if (results === null) {
         show({

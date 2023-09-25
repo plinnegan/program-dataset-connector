@@ -53,7 +53,7 @@ const query = {
   },
 }
 
-const initConfig = { dePiMaps: {}, coMaps: {}, generateIndicators: false }
+const initConfig = { dePiMaps: {}, coMaps: {}, generateIndicators: false, generatedMetadataPublicSharing: 'r-------' }
 
 const dataStoreKeysQuery = {
   keys: {
