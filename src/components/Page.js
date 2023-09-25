@@ -62,7 +62,7 @@ function getGeneratedMeta(generateIndicators) {
       params: {
         filter: 'name:like:rowId-',
         fields:
-          'id,name,shortName,expression,filter,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
+          'id,name,shortName,expression,filter,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues,sharing',
         paging: 'false',
       },
     },
@@ -70,7 +70,7 @@ function getGeneratedMeta(generateIndicators) {
       resource: 'programIndicatorGroups',
       params: {
         filter: 'name:like:rowId-',
-        fields: 'id,name,programIndicators',
+        fields: 'id,name,programIndicators,sharing',
         paging: 'false',
       },
     },
@@ -81,7 +81,7 @@ function getGeneratedMeta(generateIndicators) {
       params: {
         filter: 'name:like:rowId-',
         fields:
-          'id,name,shortName,numeratorDescription,indicatorType,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
+          'id,name,shortName,numeratorDescription,indicatorType,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues,sharing',
         paging: 'false',
       },
     }
@@ -89,7 +89,7 @@ function getGeneratedMeta(generateIndicators) {
       resource: 'indicatorGroups',
       params: {
         filter: 'name:like:rowId-',
-        fields: 'id,name,indicators',
+        fields: 'id,name,indicators,sharing',
         paging: 'false',
       },
     }
@@ -269,7 +269,7 @@ const Page = ({ metadata, existingConfig }) => {
         coFilters,
         metadata,
         generatedMetadata,
-        existingConfig?.generateIndicators
+        existingConfig
       )
       if (results === null) {
         show({
