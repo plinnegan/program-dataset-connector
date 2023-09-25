@@ -62,7 +62,7 @@ function getGeneratedMeta(generateIndicators) {
       params: {
         filter: 'name:like:rowId-',
         fields:
-          'id,name,shortName,expression,filter,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues,sharing',
+          'id,name,shortName,expression,filter,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
         paging: 'false',
       },
     },
@@ -70,7 +70,7 @@ function getGeneratedMeta(generateIndicators) {
       resource: 'programIndicatorGroups',
       params: {
         filter: 'name:like:rowId-',
-        fields: 'id,name,programIndicators,sharing',
+        fields: 'id,name,programIndicators',
         paging: 'false',
       },
     },
@@ -81,7 +81,7 @@ function getGeneratedMeta(generateIndicators) {
       params: {
         filter: 'name:like:rowId-',
         fields:
-          'id,name,shortName,numeratorDescription,indicatorType,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues,sharing',
+          'id,name,shortName,numeratorDescription,indicatorType,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
         paging: 'false',
       },
     }
@@ -89,7 +89,7 @@ function getGeneratedMeta(generateIndicators) {
       resource: 'indicatorGroups',
       params: {
         filter: 'name:like:rowId-',
-        fields: 'id,name,indicators,sharing',
+        fields: 'id,name,indicators',
         paging: 'false',
       },
     }
