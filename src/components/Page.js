@@ -26,6 +26,7 @@ import {
   filterRowsByText,
   updateDes,
   getPiCount,
+  generateSelectedMetadata,
 } from '../utils'
 import ActionButtons from './ActionButtons'
 import ImportSummary from './ImportSummary'
@@ -405,6 +406,34 @@ const Page = ({ metadata, existingConfig }) => {
     return { piCount: getPiCount(coFilters, deUid, dsUid, metadata) }
   }
 
+  const handleSingleMetadataGeneration = async (rowid) => {
+    const queries = {}
+    if(rowid){
+      queries.programIndicator = {}
+      queries.programIndicator.resource = 'programIndicators';
+      queries.programIndicator.params = {};
+      queries.programIndicator.params.filter = `name:like:${rowid}`;
+      queries.programIndicator.params.fields = 'id,name,shortName,expression,filter,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues';
+
+      queries.programIndicatorGroup = {}
+      queries.programIndicatorGroup.resource = 'programIndicatorGroups';
+      queries.programIndicatorGroup.params = {};
+      queries.programIndicatorGroup.params.filter = `name:like:${rowid}`;
+      queries.programIndicatorGroup.params.fields = 'id,name,programIndicators';
+
+      // queries.indicator = {}
+      // queries.indicator.resource = 'indicators';
+      // queries.indicator.params = {};
+      // queries.indicator.params.filter = `name:like:${rowid}`;
+      // queries.indicator.params.fields = 'id,name,shortName,numeratorDescription,indicatorType,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues';
+    }
+
+    const receiveQueryResults = await generateSelectedMetadata(queries, engine)
+
+    // console.log(queries)
+    console.log(receiveQueryResults)
+  }
+
   return (
     <div className={classes.pageDiv}>
       {loading || !generatedMetadata ? (
@@ -485,6 +514,7 @@ const Page = ({ metadata, existingConfig }) => {
                       loading={rowsLoading[key]}
                       rowSelected={rowsSelected[key]}
                       selectRow={handleSelectRow}
+                      handleSingleMetadataGeneration={handleSingleMetadataGeneration}
                       getSummaryInfo={getSummaryInfo}
                     />
                   )

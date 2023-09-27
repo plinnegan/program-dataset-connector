@@ -274,3 +274,13 @@ export function sameKeys(objOne, objTwo) {
   const objTwoKeys = Object.keys(objTwo).sort()
   return objOneKeys.join() === objTwoKeys.join()
 }
+
+export const generateSelectedMetadata = async (queries, engine) => {
+  const data = {}
+  for (const query in queries){
+    const q = {}
+    q[query] = queries[query]
+    data[query] = await engine.query(q)
+  }
+return data
+}
