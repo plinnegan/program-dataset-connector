@@ -119,7 +119,7 @@ function combineFilters(baseFilter, dsFilters, deFilters) {
   return result
 }
 
-function createPiJSON(rowId, pi, deCode, filters, combinedUid) {
+function createPiJSON(rowId, pi, deCode, filters, combinedUid, generatedMetadataPublicSharing) {
   const pis = []
   for (const { cocUid, aocUid, filter, suffix } of filters.values()) {
     const snUnique = `${aocUid}-${cocUid}-${combinedUid}`
@@ -143,6 +143,7 @@ function createPiJSON(rowId, pi, deCode, filters, combinedUid) {
     newPi.name = `${pi.name}${suffix} (${rowId})`
     newPi.aggregateExportCategoryOptionCombo = cocUid
     newPi.aggregateExportAttributeOptionCombo = aocUid
+    newPi.sharing.public = generatedMetadataPublicSharing
     pis.push(newPi)
   }
   return pis
@@ -210,7 +211,7 @@ export function getChangesOnly(metaUpdates, metaType) {
   return { [newMetadataKey]: createUpdateMetaResult, [oldMetadataKey]: deleteMetaResult }
 }
 
-function calculatePis(rowId, dsUid, deInfo, piUid, coMaps, metadata, generatedPis) {
+function calculatePis(rowId, dsUid, deInfo, piUid, coMaps, metadata, generatedPis, generatedMetadataPublicSharing) {
   const { dataSets, dataElements, programIndicators } = {
     ...metadata.dataSets,
     ...metadata.dataElements,
@@ -227,11 +228,11 @@ function calculatePis(rowId, dsUid, deInfo, piUid, coMaps, metadata, generatedPi
   const combinedFilters = combineFilters(baseFilter, dsFilters, deFilters)
   const pi = getByUid(piUid, programIndicators)
   const piUpdates = { deletePis: deleteOldPis }
-  piUpdates.createUpdatePis = createPiJSON(rowId, pi, deCode, combinedFilters, combinedUid)
+  piUpdates.createUpdatePis = createPiJSON(rowId, pi, deCode, combinedFilters, combinedUid, generatedMetadataPublicSharing)
   return getChangesOnly(piUpdates, 'programIndicators')
 }
 
-function calculatePiGroup(rowId, generatedPiGroups, piChanges, deShortName) {
+function calculatePiGroup(rowId, generatedPiGroups, piChanges, deShortName, generatedMetadataPublicSharing) {
   const { createUpdatePis, deletePis } = piChanges
   let piGroup = generatedPiGroups.find((piGroup) =>
     piGroup.name.includes(`piMappingGroup-${rowId}`)
@@ -244,12 +245,15 @@ function calculatePiGroup(rowId, generatedPiGroups, piChanges, deShortName) {
       name: `piMappingGroup-${rowId} Target DE: ${deShortName} (generated)`,
       id: uid,
       programIndicators: createUpdatePis.map((pi) => ({ id: pi.id })),
+      sharing: {
+        public: generatedMetadataPublicSharing
+        },
     }
   }
   return piGroup
 }
 
-function generateInd(indUid, piSource, indTypeUid, deUid) {
+function generateInd(indUid, piSource, indTypeUid, deUid, generatedMetadataPublicSharing) {
   return {
     id: indUid,
     name: piSource.name,
@@ -270,10 +274,13 @@ function generateInd(indUid, piSource, indTypeUid, deUid) {
         },
       },
     ],
+    sharing: {
+      public: generatedMetadataPublicSharing
+      },
   }
 }
 
-function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes, deUid) {
+function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes, deUid, generatedMetadataPublicSharing) {
   const createUpdateInds = []
   const deleteInds = []
   const indTypeUid = indTypes[0].id
@@ -285,7 +292,7 @@ function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes, deUi
     } else {
       indUid = existingInd[0].id
     }
-    createUpdateInds.push(generateInd(indUid, pi, indTypeUid, deUid))
+    createUpdateInds.push(generateInd(indUid, pi, indTypeUid, deUid), generatedMetadataPublicSharing)
   }
   for (const pi of deletePis) {
     const existingInd = generatedInds.filter((ind) => ind.description === pi.description)
@@ -297,7 +304,7 @@ function calculateInds(createUpdatePis, deletePis, generatedInds, indTypes, deUi
   return getChangesOnly(indUpdates, 'indicators')
 }
 
-function calculateIndGroup(rowId, generatedIndGroups, indChanges) {
+function calculateIndGroup(rowId, generatedIndGroups, indChanges, generatedMetadataPublicSharing) {
   const { createUpdateInds, deleteInds } = indChanges
   let indGroup = generatedIndGroups.find((indGroup) =>
     indGroup.name.includes(`indMappingGroup-${rowId}`)
@@ -313,7 +320,9 @@ function calculateIndGroup(rowId, generatedIndGroups, indChanges) {
         `${uid}&outputIdScheme=ATTRIBUTE:${config.indCustomAttr.id})  (generated)`,
       id: uid,
       indicators: createUpdateInds.map((ind) => ({ id: ind.id })),
-    }
+      sharing: {
+        public: generatedMetadataPublicSharing
+        }, }
   }
   return indGroup
 }
@@ -326,18 +335,19 @@ export default function generateDataMapping(
   coMaps,
   baseMetadata,
   generatedMetadata,
-  generateIndicators
+  existingConfig
 ) {
+  const {generateIndicators, generatedMetadataPublicSharing} = existingConfig || []
   const indTypes = baseMetadata.indicatorTypes.indicatorTypes
   const generatedPis = generatedMetadata.generatedPis.programIndicators
   const generatedPiGroups = generatedMetadata.generatedPiGroups.programIndicatorGroups
-  const piChanges = calculatePis(rowId, dsUid, de, piUid, coMaps, baseMetadata, generatedPis)
+  const piChanges = calculatePis(rowId, dsUid, de, piUid, coMaps, baseMetadata, generatedPis, generatedMetadataPublicSharing)
   const { createUpdatePis, deletePis } = piChanges
   if (createUpdatePis.length === 0 && deletePis.length === 0) {
     return null
   }
   const des = baseMetadata.dataElements.dataElements.filter(({ id }) => id === de.id)
-  const piGroup = calculatePiGroup(rowId, generatedPiGroups, piChanges, des[0].shortName)
+  const piGroup = calculatePiGroup(rowId, generatedPiGroups, piChanges, des[0].shortName, generatedMetadataPublicSharing)
   const metaChanges = {
     createUpdateMetadata: {
       programIndicators: createUpdatePis,
@@ -351,9 +361,9 @@ export default function generateDataMapping(
   if (generateIndicators) {
     const generatedInds = generatedMetadata.generatedInds.indicators
     const generatedIndGroups = generatedMetadata.generatedIndGroups.indicatorGroups
-    const indChanges = calculateInds(createUpdatePis, deletePis, generatedInds, indTypes, de.id)
+    const indChanges = calculateInds(createUpdatePis, deletePis, generatedInds, indTypes, de.id, generatedMetadataPublicSharing)
     const { createUpdateInds, deleteInds } = indChanges
-    const indGroup = calculateIndGroup(rowId, generatedIndGroups, indChanges)
+    const indGroup = calculateIndGroup(rowId, generatedIndGroups, indChanges, generatedMetadataPublicSharing)
     metaChanges.createUpdateMetadata.indicators = createUpdateInds
     metaChanges.createUpdateMetadata.indicatorGroups = [indGroup]
     metaChanges.deleteMetadata.indicators = deleteInds
