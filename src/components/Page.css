@@ -4,3 +4,18 @@
   right: 24px;
   color: lightgrey;
 }
+
+.loader {
+  margin-top: 40vh;
+  column-gap: 16px;
+  row-gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 600px;
+}
+
+.loader > * {
+  width: 100%;
+}
