@@ -10,8 +10,7 @@ const Row = ({
   deName,
   piName,
   rowId,
-  // handleClick,
-  handleSingleMetadataGeneration,
+  handleClick,
   generateMapping,
   handleDelete,
   loading,
@@ -53,10 +52,7 @@ const Row = ({
 
         <TableCell className={classes.actionTd} key={`${rowId}-edit`}>
           <ButtonStrip>
-            <Button disabled={loading} secondary 
-            onClick={() => handleSingleMetadataGeneration(rowId)}
-            // onClick={() => handleClick(rowId)}
-            >
+            <Button disabled={loading} secondary onClick={() => handleClick(rowId)}>
               Edit
             </Button>
             <Button disabled={loading} primary onClick={handleGenerateRow}>
@@ -80,14 +76,13 @@ Row.propTypes = {
   deName: PropTypes.string.isRequired,
   piName: PropTypes.string.isRequired,
   rowId: PropTypes.string.isRequired,
-  // handleClick: PropTypes.func.isRequired,
+  handleClick: PropTypes.func.isRequired,
   generateMapping: PropTypes.func.isRequired,
   handleDelete: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
   rowSelected: PropTypes.bool.isRequired,
   selectRow: PropTypes.func,
   getSummaryInfo: PropTypes.func,
-  handleSingleMetadataGeneration: PropTypes.string,
 }
 
 export default Row

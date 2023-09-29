@@ -17,7 +17,7 @@ const ConnectDataStore = ({ metadata }) => {
 
   return (
     <>
-      {loading && <Loader>Loading existing configuration...</Loader>}
+      {loading && <Loader>Loading existing mapping configuration...</Loader>}
       {error && <Error>Error {error.message}</Error>}
       {data && <Page metadata={metadata} existingConfig={data.dataStore} />}
     </>

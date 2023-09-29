@@ -26,7 +26,6 @@ import {
   filterRowsByText,
   updateDes,
   getPiCount,
-  generateSelectedMetadata,
 } from '../utils'
 import ActionButtons from './ActionButtons'
 import ImportSummary from './ImportSummary'
@@ -117,16 +116,10 @@ const Page = ({ metadata, existingConfig }) => {
   const [selectedRowData, setSelectedRowData] = useState({})
   const generatedMeta = getGeneratedMeta(existingConfig?.generateIndicators)
   const engine = useDataEngine()
-  // const { data: generatedMetadata, refetch } = useDataQuery(generatedMeta)
-  const {
-    data: generatedMetadata,
-    loading,
-    progress,
-    refetch: refetch,
-  } = useDataQueryPaged(engine, generatedMeta, {
+  const { data: generatedMetadata, refetch: refetch } = useDataQueryPaged(engine, generatedMeta, {
     pageSize: 5,
   })
-  console.log('generatedMetadata: ', generatedMetadata)
+
   const { show } = useAlert(
     ({ msg }) => msg,
     ({ type }) => ({ [type]: true })
@@ -257,110 +250,109 @@ const Page = ({ metadata, existingConfig }) => {
   }
 
   const generateMapping = (rowIds) => {
-    console.log(rowIds)
-    // const multiRowUpdate = Array.isArray(rowIds)
-    // const rowId = multiRowUpdate ? rowIds.shift() : rowIds
-    // const { dsUid, deUid, piUid, coFilters: coRowFilters } = dePiMaps[rowId]
-    // const deCode = getCodeFromId(metadata.dataElements.dataElements, deUid)
-    // if (deCode === undefined) {
-    //   mutate({ id: deUid, code: deUid })
-    // }
-    // metadata.dataElements.dataElements = updateDes(metadata.dataElements.dataElements, deUid)
-    // const coFilters = { ...coMaps, ...coRowFilters }
-    // setRowsLoading({ ...rowsLoading, [rowId]: true })
-    // try {
-    //   const results = generateDataMapping(
-    //     rowId,
-    //     dsUid,
-    //     { id: deUid, code: deUid },
-    //     piUid,
-    //     coFilters,
-    //     metadata,
-    //     generatedMetadata,
-    //     existingConfig?.generateIndicators
-    //   )
-    //   if (results === null) {
-    //     show({
-    //       msg: 'No updates detected',
-    //       type: 'success',
-    //     })
-    //     setRowsLoading({ ...rowsLoading, [rowId]: false })
-    //     if (multiRowUpdate && rowIds.length) {
-    //       generateMapping(rowIds)
-    //     }
-    //     return
-    //   }
-    //   if (results.needsDelete) {
-    //     engine.mutate(deleteMutation, {
-    //       variables: { data: results.deleteMetadata },
-    //       onError: () => {
-    //         show({
-    //           msg: `Error deleting previous mapping metadata, please remove references to this metadata in the system before regenerating`,
-    //           type: 'critical',
-    //         })
-    //         setRowsLoading({ ...rowsLoading, [rowId]: false })
-    //         if (multiRowUpdate && rowIds.length) {
-    //           generateMapping(rowIds)
-    //         }
-    //       },
-    //       onComplete: () => {
-    //         engine.mutate(createUpdateMutation, {
-    //           variables: { data: results.createUpdateMetadata },
-    //           onError: () => {
-    //             show({
-    //               msg: 'Error importing new mapping metadata.',
-    //               type: 'critical',
-    //             })
-    //             setRowsLoading({ ...rowsLoading, [rowId]: false })
-    //             if (multiRowUpdate && rowIds.length) {
-    //               generateMapping(rowIds)
-    //             }
-    //           },
-    //           onComplete: () => {
-    //             refetch()
-    //             setImportResults({ success: true, message: 'Imported successfully' })
-    //             generateMappingComplete(rowId)
-    //             if (multiRowUpdate && rowIds.length) {
-    //               generateMapping(rowIds)
-    //             }
-    //           },
-    //         })
-    //       },
-    //     })
-    //   } else {
-    //     engine.mutate(createUpdateMutation, {
-    //       variables: { data: results.createUpdateMetadata },
-    //       onError: () => {
-    //         show({
-    //           msg: 'Error importing new mapping metadata.',
-    //           type: 'critical',
-    //         })
-    //         setRowsLoading({ ...rowsLoading, [rowId]: false })
-    //         if (multiRowUpdate && rowIds.length) {
-    //           generateMapping(rowIds)
-    //         }
-    //       },
-    //       onComplete: () => {
-    //         refetch()
-    //         setImportResults({ success: true, message: 'Imported successfully' })
-    //         generateMappingComplete(rowId)
-    //         if (multiRowUpdate && rowIds.length) {
-    //           generateMapping(rowIds)
-    //         }
-    //       },
-    //     })
-    //   }
-    // } catch (e) {
-    //   if (e instanceof MappingGenerationError) {
-    //     setImportResults({ success: false, message: e.message })
-    //     generateMappingComplete(rowId)
-    //     if (multiRowUpdate && rowIds.length) {
-    //       generateMapping(rowIds)
-    //     }
-    //   } else {
-    //     throw e
-    //   }
-    // }
+    const multiRowUpdate = Array.isArray(rowIds)
+    const rowId = multiRowUpdate ? rowIds.shift() : rowIds
+    const { dsUid, deUid, piUid, coFilters: coRowFilters } = dePiMaps[rowId]
+    const deCode = getCodeFromId(metadata.dataElements.dataElements, deUid)
+    if (deCode === undefined) {
+      mutate({ id: deUid, code: deUid })
+    }
+    metadata.dataElements.dataElements = updateDes(metadata.dataElements.dataElements, deUid)
+    const coFilters = { ...coMaps, ...coRowFilters }
+    setRowsLoading({ ...rowsLoading, [rowId]: true })
+    try {
+      const results = generateDataMapping(
+        rowId,
+        dsUid,
+        { id: deUid, code: deUid },
+        piUid,
+        coFilters,
+        metadata,
+        generatedMetadata,
+        existingConfig?.generateIndicators
+      )
+      if (results === null) {
+        show({
+          msg: 'No updates detected',
+          type: 'success',
+        })
+        setRowsLoading({ ...rowsLoading, [rowId]: false })
+        if (multiRowUpdate && rowIds.length) {
+          generateMapping(rowIds)
+        }
+        return
+      }
+      if (results.needsDelete) {
+        engine.mutate(deleteMutation, {
+          variables: { data: results.deleteMetadata },
+          onError: () => {
+            show({
+              msg: `Error deleting previous mapping metadata, please remove references to this metadata in the system before regenerating`,
+              type: 'critical',
+            })
+            setRowsLoading({ ...rowsLoading, [rowId]: false })
+            if (multiRowUpdate && rowIds.length) {
+              generateMapping(rowIds)
+            }
+          },
+          onComplete: () => {
+            engine.mutate(createUpdateMutation, {
+              variables: { data: results.createUpdateMetadata },
+              onError: () => {
+                show({
+                  msg: 'Error importing new mapping metadata.',
+                  type: 'critical',
+                })
+                setRowsLoading({ ...rowsLoading, [rowId]: false })
+                if (multiRowUpdate && rowIds.length) {
+                  generateMapping(rowIds)
+                }
+              },
+              onComplete: () => {
+                refetch()
+                setImportResults({ success: true, message: 'Imported successfully' })
+                generateMappingComplete(rowId)
+                if (multiRowUpdate && rowIds.length) {
+                  generateMapping(rowIds)
+                }
+              },
+            })
+          },
+        })
+      } else {
+        engine.mutate(createUpdateMutation, {
+          variables: { data: results.createUpdateMetadata },
+          onError: () => {
+            show({
+              msg: 'Error importing new mapping metadata.',
+              type: 'critical',
+            })
+            setRowsLoading({ ...rowsLoading, [rowId]: false })
+            if (multiRowUpdate && rowIds.length) {
+              generateMapping(rowIds)
+            }
+          },
+          onComplete: () => {
+            refetch()
+            setImportResults({ success: true, message: 'Imported successfully' })
+            generateMappingComplete(rowId)
+            if (multiRowUpdate && rowIds.length) {
+              generateMapping(rowIds)
+            }
+          },
+        })
+      }
+    } catch (e) {
+      if (e instanceof MappingGenerationError) {
+        setImportResults({ success: false, message: e.message })
+        generateMappingComplete(rowId)
+        if (multiRowUpdate && rowIds.length) {
+          generateMapping(rowIds)
+        }
+      } else {
+        throw e
+      }
+    }
   }
 
   const handleSelectRow = (rowId) => {
@@ -407,133 +399,99 @@ const Page = ({ metadata, existingConfig }) => {
     return { piCount: getPiCount(coFilters, deUid, dsUid, metadata) }
   }
 
-  const handleSingleMetadataGeneration = async (rowid) => {
-    const queries = {}
-    if(rowid){
-      queries.programIndicator = {}
-      queries.programIndicator.resource = 'programIndicators';
-      queries.programIndicator.params = {};
-      queries.programIndicator.params.filter = `name:like:${rowid}`;
-      queries.programIndicator.params.fields = 'id,name,shortName,expression,filter,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues';
-
-      queries.programIndicatorGroup = {}
-      queries.programIndicatorGroup.resource = 'programIndicatorGroups';
-      queries.programIndicatorGroup.params = {};
-      queries.programIndicatorGroup.params.filter = `name:like:${rowid}`;
-      queries.programIndicatorGroup.params.fields = 'id,name,programIndicators';
-
-      // queries.indicator = {}
-      // queries.indicator.resource = 'indicators';
-      // queries.indicator.params = {};
-      // queries.indicator.params.filter = `name:like:${rowid}`;
-      // queries.indicator.params.fields = 'id,name,shortName,numeratorDescription,indicatorType,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues';
-    }
-
-    const receiveQueryResults = await generateSelectedMetadata(queries, engine)
-
-    // console.log(queries)
-    console.log(receiveQueryResults)
-  }
-
   return (
     <div className={classes.pageDiv}>
-      {loading || !generatedMetadata ? (
-        // TODO: Replace this with a loading bar based on the progress variable
-        <p>Loading existing PIs {progress}</p>
-      ) : (
-        <>
-          <h1>Program Dataset Connector</h1>
-          <p>
-            This application is used to link program indicators to a data elements in a specific
-            data set. This is used to generate copies of the program indicator for each of the
-            disaggregations assigned to the data element in the data set (including dissagregations
-            on the data set itself)
-          </p>
-          <br />
-          <br />
-          {showModal && (
-            <Mapping
-              coMaps={coMaps}
-              rowDataIn={selectedRowData}
-              handleClose={handleClose}
-              handleUpdate={handleRowUpdate}
-              metadata={metadata}
-            ></Mapping>
-          )}
-          {showImportStatus && (
-            <ImportSummary
-              handleClose={() => setShowImportStatus(false)}
-              importResults={importResults}
-            />
-          )}
-          <div className="versionText">Version: {process.env.REACT_APP_VERSION}</div>
-          <InputField
-            className={classes.filterInput}
-            inputWidth={'20vw'}
-            label="Filter"
-            name="filter"
-            value={filterText}
-            onChange={(e) => handleFilterChange(e)}
+      <>
+        <h1>Program Dataset Connector</h1>
+        <p>
+          This application is used to link program indicators to a data elements in a specific data
+          set. This is used to generate copies of the program indicator for each of the
+          disaggregations assigned to the data element in the data set (including dissagregations on
+          the data set itself)
+        </p>
+        <br />
+        <br />
+        {showModal && (
+          <Mapping
+            coMaps={coMaps}
+            rowDataIn={selectedRowData}
+            handleClose={handleClose}
+            handleUpdate={handleRowUpdate}
+            metadata={metadata}
+          ></Mapping>
+        )}
+        {showImportStatus && (
+          <ImportSummary
+            handleClose={() => setShowImportStatus(false)}
+            importResults={importResults}
           />
-          <Table className={classes.dataTable}>
-            <TableHead>
-              <TableRowHead>
-                <TableCellHead key="selected">
-                  <Checkbox checked={allRowsSelected} onChange={handleAllRowsSelected} />
-                </TableCellHead>
-                <TableCellHead key="rowId">Row ID</TableCellHead>
-                <TableCellHead key="dsName">
-                  Data Set <SortButton handleClick={() => sortByColumn('dsName')} />
-                </TableCellHead>
-                <TableCellHead key="deName">
-                  Data Element <SortButton handleClick={() => sortByColumn('deName')} />
-                </TableCellHead>
-                <TableCellHead key="piName">
-                  Program Indicator <SortButton handleClick={() => sortByColumn('piName')} />
-                </TableCellHead>
-                <TableCellHead key="edit"></TableCellHead>
-                <TableCellHead key="status"></TableCellHead>
-              </TableRowHead>
-            </TableHead>
-            <TableBody>
-              {Object.keys(dePiMaps).length > 0 &&
-                filteredRowIds.map((key) => {
-                  if (!(key in dePiMaps)) {
-                    return
-                  }
-                  const { dsName, deName, piName } = dePiMaps[key]
-                  return (
-                    <Row
-                      key={key}
-                      dsName={dsName}
-                      deName={deName}
-                      piName={piName}
-                      rowId={key}
-                      handleClick={handleRowClick}
-                      generateMapping={generateMapping}
-                      handleDelete={onDelete}
-                      loading={rowsLoading[key]}
-                      rowSelected={rowsSelected[key]}
-                      selectRow={handleSelectRow}
-                      handleSingleMetadataGeneration={handleSingleMetadataGeneration}
-                      getSummaryInfo={getSummaryInfo}
-                    />
-                  )
-                })}
-            </TableBody>
-            <TableFoot>
-              <TableRow>
-                <TableCell colSpan="5">
-                  <Button primary onClick={() => addRow()}>
-                    Add row
-                  </Button>
-                </TableCell>
-              </TableRow>
-            </TableFoot>
-          </Table>
-          <ActionButtons addRow={addRow} generateSelected={generateSelected} />
-        </>
-      )}
+        )}
+        <div className="versionText">Version: {process.env.REACT_APP_VERSION}</div>
+        <InputField
+          className={classes.filterInput}
+          inputWidth={'20vw'}
+          label="Filter"
+          name="filter"
+          value={filterText}
+          onChange={(e) => handleFilterChange(e)}
+        />
+        <Table className={classes.dataTable}>
+          <TableHead>
+            <TableRowHead>
+              <TableCellHead key="selected">
+                <Checkbox checked={allRowsSelected} onChange={handleAllRowsSelected} />
+              </TableCellHead>
+              <TableCellHead key="rowId">Row ID</TableCellHead>
+              <TableCellHead key="dsName">
+                Data Set <SortButton handleClick={() => sortByColumn('dsName')} />
+              </TableCellHead>
+              <TableCellHead key="deName">
+                Data Element <SortButton handleClick={() => sortByColumn('deName')} />
+              </TableCellHead>
+              <TableCellHead key="piName">
+                Program Indicator <SortButton handleClick={() => sortByColumn('piName')} />
+              </TableCellHead>
+              <TableCellHead key="edit"></TableCellHead>
+              <TableCellHead key="status"></TableCellHead>
+            </TableRowHead>
+          </TableHead>
+          <TableBody>
+            {Object.keys(dePiMaps).length > 0 &&
+              filteredRowIds.map((key) => {
+                if (!(key in dePiMaps)) {
+                  return
+                }
+                const { dsName, deName, piName } = dePiMaps[key]
+                return (
+                  <Row
+                    key={key}
+                    dsName={dsName}
+                    deName={deName}
+                    piName={piName}
+                    rowId={key}
+                    handleClick={handleRowClick}
+                    generateMapping={generateMapping}
+                    handleDelete={onDelete}
+                    loading={rowsLoading[key]}
+                    rowSelected={rowsSelected[key]}
+                    selectRow={handleSelectRow}
+                    getSummaryInfo={getSummaryInfo}
+                  />
+                )
+              })}
+          </TableBody>
+          <TableFoot>
+            <TableRow>
+              <TableCell colSpan="5">
+                <Button primary onClick={() => addRow()}>
+                  Add row
+                </Button>
+              </TableCell>
+            </TableRow>
+          </TableFoot>
+        </Table>
+        <ActionButtons addRow={addRow} generateSelected={generateSelected} />
+      </>
     </div>
   )
 }

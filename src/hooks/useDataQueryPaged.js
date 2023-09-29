@@ -4,6 +4,11 @@ const responseKeyMap = {
   'tracker/events': 'instances',
 }
 
+function endpointNotPaged(endpoint) {
+  const noPagingSupport = ['dataStore']
+  return noPagingSupport.some((noPagingSupport) => endpoint.includes(noPagingSupport))
+}
+
 function getPageSize(query, queryKey, defaultSize = 50) {
   const queryPageSize = query[queryKey]?.params?.pageSize
   return queryPageSize || defaultSize
@@ -52,21 +57,39 @@ export async function* getPaged(engine, query, params) {
   const pageSize = getPageSize(query, queryKey)
   const endpoint = query[queryKey].resource
   const dataKey = responseKeyMap[endpoint] || endpoint
-  const total = await getItemCount(engine, query, params)
-  const totalPages = Math.ceil(total / pageSize)
+  let totalPages = 1
+  if (!endpointNotPaged(endpoint)) {
+    const total = await getItemCount(engine, query, params)
+    totalPages = Math.ceil(total / pageSize)
+  }
   for (let i = 1; i <= totalPages; i++) {
     const pageQuery = pageNQuery(query, i)
     const pageData = await engine.query(pageQuery, { variables: params })
-    yield pageData[queryKey][dataKey]
+    if (!(queryKey in pageData)) {
+      yield pageData
+    } else if (!(dataKey in pageData[queryKey])) {
+      yield pageData[queryKey]
+    } else {
+      yield pageData[queryKey][dataKey]
+    }
   }
 }
 
-async function getTotalPages(engine, query, params) {
+async function getTotalPages(engine, query, params, setProgress = () => {}) {
   let totalPages = 0
+  const totalEndpoints = Object.keys(query).length
+  let currentQuery = 1
   for (const queryKey in query) {
-    const singleQueryTotal = await getItemCount(engine, { [queryKey]: query[queryKey] }, params)
-    const pageSize = getPageSize(query, queryKey)
-    totalPages += Math.ceil(singleQueryTotal / pageSize)
+    if (endpointNotPaged(queryKey)) {
+      console.log('Single page for no pagination support endpoint: ', queryKey)
+      totalPages += 1
+    } else {
+      const singleQueryTotal = await getItemCount(engine, { [queryKey]: query[queryKey] }, params)
+      setProgress((0.1 * currentQuery) / totalEndpoints)
+      currentQuery++
+      const pageSize = getPageSize(query, queryKey)
+      totalPages += Math.ceil(singleQueryTotal / pageSize)
+    }
   }
   return totalPages
 }
@@ -77,24 +100,21 @@ export default function useDataQueryPaged(engine, query, params) {
   const [error, setError] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  console.log('Progress: ', progress)
-
   const refetch = async (currentParams = {}) => {
     setError(undefined)
     setLoading(true)
     const partialData = {}
     try {
       let pagesProcessed = 0
-      const totalPages = await getTotalPages(engine, query, params)
+      const totalPages = await getTotalPages(engine, query, params, setProgress)
       for (const queryKey in query) {
         const resource = query[queryKey].resource
         partialData[queryKey] = { [resource]: [] }
         for await (const data of getPaged(engine, { [queryKey]: query[queryKey] }, currentParams)) {
           pagesProcessed++
-          setProgress(pagesProcessed / totalPages)
+          setProgress(0.1 + 0.9 * (pagesProcessed / totalPages))
           partialData[queryKey][resource].push(...data)
         }
-        // results.push(getPaged(engine, { [queryKey]: query[queryKey] }, currentParams, true))
       }
       setData(partialData)
     } catch (err) {

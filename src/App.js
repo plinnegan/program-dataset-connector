@@ -1,11 +1,12 @@
-import { useDataQuery, useDataMutation, useDataEngine } from '@dhis2/app-runtime'
+import { useDataMutation, useDataEngine } from '@dhis2/app-runtime'
 import React, { useState, useEffect } from 'react'
 import classes from './App.module.css'
 import ConnectDataStore from './components/ConnectDataStore'
 import Error from './components/Error'
-import Loader from './components/Loader'
 import { config } from './consts'
 import { sameKeys } from './utils'
+import useDataQueryPaged from './hooks/useDataQueryPaged'
+import Loader from './components/Loader'
 
 const ccInfo =
   'categoryCombo(id,categoryOptionCombos(id,name,categoryOptions(id,name,shortName)),categories(id,categoryOptions(id,name)))'
@@ -23,7 +24,6 @@ const query = {
     params: {
       fields: `id,name,code,shortName,dataSetElements(dataSet,${ccInfo}),${ccInfo}`,
       filter: 'domainType:eq:AGGREGATE',
-      paging: 'false',
     },
   },
   programIndicators: {
@@ -31,7 +31,6 @@ const query = {
     params: {
       filter: ['name:!like:rowId-', 'name:!like:(generated)', 'name:!$like:zzDel'],
       fields: ':owner',
-      paging: 'false',
     },
   },
   dataStore: {
@@ -53,7 +52,12 @@ const query = {
   },
 }
 
-const initConfig = { dePiMaps: {}, coMaps: {}, generateIndicators: false }
+const initConfig = {
+  dePiMaps: {},
+  coMaps: {},
+  generateIndicators: false,
+  generatedMetadataPublicSharing: 'r-------',
+}
 
 const dataStoreKeysQuery = {
   keys: {
@@ -92,7 +96,8 @@ const attrMutation = {
 }
 
 const MyApp = () => {
-  const { loading, error, data: metadata } = useDataQuery(query)
+  const engine = useDataEngine()
+  const { loading, error, data: metadata, progress } = useDataQueryPaged(engine, query)
   const [dataStoreSetup, setDataStoreSetup] = useState(false)
   const [mutateIndType] = useDataMutation(indTypeMutation)
   const [mutateDataStore] = useDataMutation(dataStoreMutation, {
@@ -100,7 +105,6 @@ const MyApp = () => {
   })
   const [mutateAttribute] = useDataMutation(attrMutation)
   const { dataStoreName } = config
-  const engine = useDataEngine()
 
   const checkCurrentDsConfig = async () => {
     const keyCheck = await engine.query(dataStoreKeysQuery)
@@ -119,7 +123,7 @@ const MyApp = () => {
 
   useEffect(() => {
     if (metadata) {
-      if (!metadata.dataStore.includes(dataStoreName)) {
+      if (!metadata.dataStore.dataStore.includes(dataStoreName)) {
         mutateDataStore()
       } else {
         checkCurrentDsConfig()
@@ -141,12 +145,14 @@ const MyApp = () => {
 
   return (
     <div className={classes.container}>
-      {loading && <Loader>Loading...</Loader>}
+      {loading && (
+        <Loader loadType="linear" amount={progress * 100}>
+          Loading DHIS2 metadata...
+        </Loader>
+      )}
       {error && <Error>Error {error.message}</Error>}
-      {metadata && (metadata.dataStore.includes(dataStoreName) || dataStoreSetup) ? (
+      {metadata && (metadata.dataStore.dataStore.includes(dataStoreName) || dataStoreSetup) && (
         <ConnectDataStore metadata={metadata}></ConnectDataStore>
-      ) : (
-        <Loader>Setting up datastore...</Loader>
       )}
     </div>
   )
