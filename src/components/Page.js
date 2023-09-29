@@ -154,7 +154,7 @@ const Page = ({ metadata, existingConfig }) => {
 
   const handleRowClick = (rowId) => {
     setSelectedRowData(dePiMaps[rowId])
-    setShowModal(true)
+    // setShowModal(true)
   }
 
   const handleClose = () => {
@@ -257,109 +257,110 @@ const Page = ({ metadata, existingConfig }) => {
   }
 
   const generateMapping = (rowIds) => {
-    const multiRowUpdate = Array.isArray(rowIds)
-    const rowId = multiRowUpdate ? rowIds.shift() : rowIds
-    const { dsUid, deUid, piUid, coFilters: coRowFilters } = dePiMaps[rowId]
-    const deCode = getCodeFromId(metadata.dataElements.dataElements, deUid)
-    if (deCode === undefined) {
-      mutate({ id: deUid, code: deUid })
-    }
-    metadata.dataElements.dataElements = updateDes(metadata.dataElements.dataElements, deUid)
-    const coFilters = { ...coMaps, ...coRowFilters }
-    setRowsLoading({ ...rowsLoading, [rowId]: true })
-    try {
-      const results = generateDataMapping(
-        rowId,
-        dsUid,
-        { id: deUid, code: deUid },
-        piUid,
-        coFilters,
-        metadata,
-        generatedMetadata,
-        existingConfig?.generateIndicators
-      )
-      if (results === null) {
-        show({
-          msg: 'No updates detected',
-          type: 'success',
-        })
-        setRowsLoading({ ...rowsLoading, [rowId]: false })
-        if (multiRowUpdate && rowIds.length) {
-          generateMapping(rowIds)
-        }
-        return
-      }
-      if (results.needsDelete) {
-        engine.mutate(deleteMutation, {
-          variables: { data: results.deleteMetadata },
-          onError: () => {
-            show({
-              msg: `Error deleting previous mapping metadata, please remove references to this metadata in the system before regenerating`,
-              type: 'critical',
-            })
-            setRowsLoading({ ...rowsLoading, [rowId]: false })
-            if (multiRowUpdate && rowIds.length) {
-              generateMapping(rowIds)
-            }
-          },
-          onComplete: () => {
-            engine.mutate(createUpdateMutation, {
-              variables: { data: results.createUpdateMetadata },
-              onError: () => {
-                show({
-                  msg: 'Error importing new mapping metadata.',
-                  type: 'critical',
-                })
-                setRowsLoading({ ...rowsLoading, [rowId]: false })
-                if (multiRowUpdate && rowIds.length) {
-                  generateMapping(rowIds)
-                }
-              },
-              onComplete: () => {
-                refetch()
-                setImportResults({ success: true, message: 'Imported successfully' })
-                generateMappingComplete(rowId)
-                if (multiRowUpdate && rowIds.length) {
-                  generateMapping(rowIds)
-                }
-              },
-            })
-          },
-        })
-      } else {
-        engine.mutate(createUpdateMutation, {
-          variables: { data: results.createUpdateMetadata },
-          onError: () => {
-            show({
-              msg: 'Error importing new mapping metadata.',
-              type: 'critical',
-            })
-            setRowsLoading({ ...rowsLoading, [rowId]: false })
-            if (multiRowUpdate && rowIds.length) {
-              generateMapping(rowIds)
-            }
-          },
-          onComplete: () => {
-            refetch()
-            setImportResults({ success: true, message: 'Imported successfully' })
-            generateMappingComplete(rowId)
-            if (multiRowUpdate && rowIds.length) {
-              generateMapping(rowIds)
-            }
-          },
-        })
-      }
-    } catch (e) {
-      if (e instanceof MappingGenerationError) {
-        setImportResults({ success: false, message: e.message })
-        generateMappingComplete(rowId)
-        if (multiRowUpdate && rowIds.length) {
-          generateMapping(rowIds)
-        }
-      } else {
-        throw e
-      }
-    }
+    console.log(rowIds)
+    // const multiRowUpdate = Array.isArray(rowIds)
+    // const rowId = multiRowUpdate ? rowIds.shift() : rowIds
+    // const { dsUid, deUid, piUid, coFilters: coRowFilters } = dePiMaps[rowId]
+    // const deCode = getCodeFromId(metadata.dataElements.dataElements, deUid)
+    // if (deCode === undefined) {
+    //   mutate({ id: deUid, code: deUid })
+    // }
+    // metadata.dataElements.dataElements = updateDes(metadata.dataElements.dataElements, deUid)
+    // const coFilters = { ...coMaps, ...coRowFilters }
+    // setRowsLoading({ ...rowsLoading, [rowId]: true })
+    // try {
+    //   const results = generateDataMapping(
+    //     rowId,
+    //     dsUid,
+    //     { id: deUid, code: deUid },
+    //     piUid,
+    //     coFilters,
+    //     metadata,
+    //     generatedMetadata,
+    //     existingConfig?.generateIndicators
+    //   )
+    //   if (results === null) {
+    //     show({
+    //       msg: 'No updates detected',
+    //       type: 'success',
+    //     })
+    //     setRowsLoading({ ...rowsLoading, [rowId]: false })
+    //     if (multiRowUpdate && rowIds.length) {
+    //       generateMapping(rowIds)
+    //     }
+    //     return
+    //   }
+    //   if (results.needsDelete) {
+    //     engine.mutate(deleteMutation, {
+    //       variables: { data: results.deleteMetadata },
+    //       onError: () => {
+    //         show({
+    //           msg: `Error deleting previous mapping metadata, please remove references to this metadata in the system before regenerating`,
+    //           type: 'critical',
+    //         })
+    //         setRowsLoading({ ...rowsLoading, [rowId]: false })
+    //         if (multiRowUpdate && rowIds.length) {
+    //           generateMapping(rowIds)
+    //         }
+    //       },
+    //       onComplete: () => {
+    //         engine.mutate(createUpdateMutation, {
+    //           variables: { data: results.createUpdateMetadata },
+    //           onError: () => {
+    //             show({
+    //               msg: 'Error importing new mapping metadata.',
+    //               type: 'critical',
+    //             })
+    //             setRowsLoading({ ...rowsLoading, [rowId]: false })
+    //             if (multiRowUpdate && rowIds.length) {
+    //               generateMapping(rowIds)
+    //             }
+    //           },
+    //           onComplete: () => {
+    //             refetch()
+    //             setImportResults({ success: true, message: 'Imported successfully' })
+    //             generateMappingComplete(rowId)
+    //             if (multiRowUpdate && rowIds.length) {
+    //               generateMapping(rowIds)
+    //             }
+    //           },
+    //         })
+    //       },
+    //     })
+    //   } else {
+    //     engine.mutate(createUpdateMutation, {
+    //       variables: { data: results.createUpdateMetadata },
+    //       onError: () => {
+    //         show({
+    //           msg: 'Error importing new mapping metadata.',
+    //           type: 'critical',
+    //         })
+    //         setRowsLoading({ ...rowsLoading, [rowId]: false })
+    //         if (multiRowUpdate && rowIds.length) {
+    //           generateMapping(rowIds)
+    //         }
+    //       },
+    //       onComplete: () => {
+    //         refetch()
+    //         setImportResults({ success: true, message: 'Imported successfully' })
+    //         generateMappingComplete(rowId)
+    //         if (multiRowUpdate && rowIds.length) {
+    //           generateMapping(rowIds)
+    //         }
+    //       },
+    //     })
+    //   }
+    // } catch (e) {
+    //   if (e instanceof MappingGenerationError) {
+    //     setImportResults({ success: false, message: e.message })
+    //     generateMappingComplete(rowId)
+    //     if (multiRowUpdate && rowIds.length) {
+    //       generateMapping(rowIds)
+    //     }
+    //   } else {
+    //     throw e
+    //   }
+    // }
   }
 
   const handleSelectRow = (rowId) => {
