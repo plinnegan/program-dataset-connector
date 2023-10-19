@@ -18,7 +18,11 @@ function pageNQuery(query, pageNumber) {
   const result = {}
   for (const queryKey in query) {
     const params = query[queryKey]?.params
-    result[queryKey] = { ...query[queryKey], params: { ...params, page: pageNumber } }
+    let pageParams = params
+    if (typeof params === 'function') {
+      pageParams = (pageParams) => ({ ...params(pageParams), page: pageNumber })
+    }
+    result[queryKey] = { ...query[queryKey], params: pageParams }
   }
   return result
 }
@@ -75,7 +79,7 @@ export async function* getPaged(engine, query, params) {
   }
 }
 
-async function getTotalPages(engine, query, params, setProgress = () => { }) {
+async function getTotalPages(engine, query, params, setProgress = () => {}) {
   let totalPages = 0
   const totalEndpoints = Object.keys(query).length
   let currentQuery = 1
@@ -94,15 +98,15 @@ async function getTotalPages(engine, query, params, setProgress = () => { }) {
   return totalPages
 }
 
-export default function useDataQueryPaged(engine, query, params) {
+export default function useDataQueryPaged(engine, query, initParams) {
   const [data, setData] = useState(undefined)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  // console.log("query: ", query)
-
-  const refetch = async (currentParams = {}) => {
+  const refetch = async (currentParams = {}, callbacks) => {
+    const params = { ...initParams, ...currentParams }
+    const { onComplete, onError } = callbacks || {}
     setError(undefined)
     setLoading(true)
     const partialData = {}
@@ -112,23 +116,25 @@ export default function useDataQueryPaged(engine, query, params) {
       for (const queryKey in query) {
         const resource = query[queryKey].resource
         partialData[queryKey] = { [resource]: [] }
-        for await (const data of getPaged(engine, { [queryKey]: query[queryKey] }, currentParams)) {
+        for await (const data of getPaged(engine, { [queryKey]: query[queryKey] }, params)) {
           pagesProcessed++
           setProgress(0.1 + 0.9 * (pagesProcessed / totalPages))
           partialData[queryKey][resource].push(...data)
         }
       }
       setData(partialData)
+      onComplete && onComplete(partialData)
     } catch (err) {
       setError(err)
+      onError && onError(err)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    if (!params?.lazy) {
-      refetch(params)
+    if (!initParams?.lazy) {
+      refetch(initParams)
     }
   }, [])
 
