@@ -26,6 +26,7 @@ import {
   filterRowsByText,
   updateDes,
   getPiCount,
+  generateSelectedMetadata,
 } from '../utils'
 import ActionButtons from './ActionButtons'
 import ImportSummary from './ImportSummary'
@@ -56,45 +57,50 @@ const deleteMutation = {
   },
 }
 
-function getGeneratedMeta(generateIndicators) {
-  const generatedMeta = {
-    generatedPis: {
-      resource: 'programIndicators',
-      params: {
-        filter: 'name:like:rowId-',
-        fields:
-          'id,name,shortName,expression,filter,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
-      },
-    },
-    generatedPiGroups: {
-      resource: 'programIndicatorGroups',
-      params: {
-        filter: 'name:like:rowId-',
-        fields: 'id,name,programIndicators',
-      },
-    },
-  }
-  if (generateIndicators) {
-    generatedMeta.generatedInds = {
-      resource: 'indicators',
-      params: {
-        filter: 'name:like:rowId-',
-        fields:
-          'id,name,shortName,numeratorDescription,indicatorType,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
-      },
-    }
-    generatedMeta.generatedIndGroups = {
-      resource: 'indicatorGroups',
-      params: {
-        filter: 'name:like:rowId-',
-        fields: 'id,name,indicators',
-      },
-    }
-  }
-  return generatedMeta
-}
-
 const Page = ({ metadata, existingConfig }) => {
+  const [selectedRowId, setSelectedRowId] = useState('')
+  // console.log("selectedRowId", selectedRowId)
+  function getGeneratedMeta(generateIndicators, rowId) {
+
+    // console.log(rowId)
+
+    const generatedMeta = {
+      generatedPis: {
+        resource: 'programIndicators',
+        params: {
+          filter: `name:like:${rowId}`,
+          fields:
+            'id,name,shortName,expression,filter,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
+        }
+      },
+      generatedPiGroups: {
+        resource: 'programIndicatorGroups',
+        params: {
+          filter: `name:like:${rowId}`,
+          fields: 'id,name,programIndicators',
+        },
+      },
+    }
+    if (generateIndicators) {
+      generatedMeta.generatedInds = {
+        resource: 'indicators',
+        params: ({ rowId }) => ({
+          filter: `name:like:${rowId}`,
+          fields:
+            'id,name,shortName,numeratorDescription,indicatorType,code,description,aggregateExportCategoryOptionCombo,aggregateExportAttributeOptionCombo,attributeValues',
+        }),
+      }
+      generatedMeta.generatedIndGroups = {
+        resource: 'indicatorGroups',
+        params: ({ rowId }) => ({
+          filter: `name:like:${rowId}`,
+          fields: 'id,name,indicators',
+        }),
+      }
+    }
+    return generatedMeta
+  }
+
   const [dePiMaps, setDePiMaps] = useState(existingConfig.dePiMaps)
   const [orderedRowIds, setOrderedRowIds] = useState(Object.keys(dePiMaps))
   const [filteredRowIds, setFilteredRowIds] = useState(orderedRowIds)
@@ -114,11 +120,13 @@ const Page = ({ metadata, existingConfig }) => {
     message: 'Import not complete',
   })
   const [selectedRowData, setSelectedRowData] = useState({})
-  const generatedMeta = getGeneratedMeta(existingConfig?.generateIndicators)
+  const [generatedMeta, setGeneratedMeta] = useState(getGeneratedMeta(existingConfig?.generateIndicators, selectedRowId))
   const engine = useDataEngine()
+  // console.log("generatedMeta: ", generatedMeta)
   const { data: generatedMetadata, refetch: refetch } = useDataQueryPaged(engine, generatedMeta, {
     pageSize: 5,
-  })
+    lazy: true
+  },)
 
   const { show } = useAlert(
     ({ msg }) => msg,
@@ -147,7 +155,7 @@ const Page = ({ metadata, existingConfig }) => {
 
   const handleRowClick = (rowId) => {
     setSelectedRowData(dePiMaps[rowId])
-    // setShowModal(true)
+    setShowModal(true)
   }
 
   const handleClose = () => {
@@ -181,49 +189,67 @@ const Page = ({ metadata, existingConfig }) => {
       type: 'critical',
     })
 
-  const onDelete = async (rowId) => {
-    const generatedPis = generatedMetadata.generatedPis.programIndicators
-    const generatedPiGroups = generatedMetadata.generatedPiGroups.programIndicatorGroups
-    const delPis = generatedPis.filter((pi) => pi.description.includes(rowId))
-    const delPiGroups = generatedPiGroups.filter((piGroup) => piGroup.name.includes(rowId))
-    const delData = {
-      programIndicators: delPis,
-      programIndicatorGroups: delPiGroups,
-    }
-    if (existingConfig?.generateIndicators) {
-      const generatedInds = generatedMetadata.generatedInds.indicators
-      const generatedIndGroups = generatedMetadata.generatedIndGroups.indicatorGroups
-      const delInds = generatedInds.filter((ind) => ind.description.includes(rowId))
-      const delIndGroups = generatedIndGroups.filter((indGroup) => indGroup.name.includes(rowId))
-      delData.indicators = delInds
-      delData.indicatorGroups = delIndGroups
-    }
+  useEffect((
+  ) => {
+    setGeneratedMeta(getGeneratedMeta(existingConfig?.generateIndicators, selectedRowId));
+    refetch()
+  }, [selectedRowId])
 
-    const newDePiMaps = removeKey(dePiMaps, rowId)
-    setRowsLoading(removeKey(rowsLoading, rowId))
-    setRowsSelected(removeKey(rowsSelected, rowId))
-    try {
-      const res = await engine.mutate(deleteMutation, {
-        variables: {
-          data: delData,
-        },
-        onError: showDeleteError,
-      })
-      if (res.status === 'OK') {
-        const dsRes = await engine.mutate(dataStoreMutation, {
-          variables: { data: { ...existingConfig, dePiMaps: newDePiMaps, coMaps: coMaps } },
+  const onDelete = async (rowId) => {
+    setSelectedRowId(rowId)
+
+    // console.log("multiRowUpdate: ", multiRowUpdate)
+    // console.log("rowId: ", rowId)
+    // console.log("generatedMetadata: ", generatedMetadata)
+
+    if (generatedMetadata === undefined) {
+      refetch()
+    }
+    else {
+      const generatedPis = generatedMetadata.generatedPis.programIndicators
+      const generatedPiGroups = generatedMetadata.generatedPiGroups.programIndicatorGroups
+      const delPis = generatedPis.filter((pi) => pi.description.includes(rowId))
+      const delPiGroups = generatedPiGroups.filter((piGroup) => piGroup.name.includes(rowId))
+      const delData = {
+        programIndicators: delPis,
+        programIndicatorGroups: delPiGroups,
+      }
+      if (existingConfig?.generateIndicators) {
+        const generatedInds = generatedMetadata.generatedInds.indicators
+        const generatedIndGroups = generatedMetadata.generatedIndGroups.indicatorGroups
+        const delInds = generatedInds.filter((ind) => ind.description.includes(rowId))
+        const delIndGroups = generatedIndGroups.filter((indGroup) => indGroup.name.includes(rowId))
+        delData.indicators = delInds
+        delData.indicatorGroups = delIndGroups
+      }
+
+      const newDePiMaps = removeKey(dePiMaps, rowId)
+      setRowsLoading(removeKey(rowsLoading, rowId))
+      setRowsSelected(removeKey(rowsSelected, rowId))
+      try {
+        const res = await engine.mutate(deleteMutation, {
+          variables: {
+            data: delData,
+          },
           onError: showDeleteError,
         })
-        if (dsRes.status === 'OK') {
-          setDePiMaps(newDePiMaps)
+        if (res.status === 'OK') {
+          const dsRes = await engine.mutate(dataStoreMutation, {
+            variables: { data: { ...existingConfig, dePiMaps: newDePiMaps, coMaps: coMaps } },
+            onError: showDeleteError,
+          })
+          if (dsRes.status === 'OK') {
+            setDePiMaps(newDePiMaps)
+          } else {
+            showDeleteError()
+          }
         } else {
           showDeleteError()
         }
-      } else {
+      } catch (err) {
         showDeleteError()
       }
-    } catch (err) {
-      showDeleteError()
+      setSelectedRowId('')
     }
   }
 
@@ -249,112 +275,126 @@ const Page = ({ metadata, existingConfig }) => {
     }
   }
 
-  const generateMapping = (rowIds) => {
+  const generateMapping = async (rowIds) => {
     const multiRowUpdate = Array.isArray(rowIds)
     const rowId = multiRowUpdate ? rowIds.shift() : rowIds
-    const { dsUid, deUid, piUid, coFilters: coRowFilters } = dePiMaps[rowId]
-    const deCode = getCodeFromId(metadata.dataElements.dataElements, deUid)
-    if (deCode === undefined) {
-      mutate({ id: deUid, code: deUid })
-    }
-    metadata.dataElements.dataElements = updateDes(metadata.dataElements.dataElements, deUid)
-    const coFilters = { ...coMaps, ...coRowFilters }
-    setRowsLoading({ ...rowsLoading, [rowId]: true })
-    try {
-      const results = generateDataMapping(
-        rowId,
-        dsUid,
-        { id: deUid, code: deUid },
-        piUid,
-        coFilters,
-        metadata,
-        generatedMetadata,
-        existingConfig?.generateIndicators
-      )
-      if (results === null) {
-        show({
-          msg: 'No updates detected',
-          type: 'success',
-        })
-        setRowsLoading({ ...rowsLoading, [rowId]: false })
-        if (multiRowUpdate && rowIds.length) {
-          generateMapping(rowIds)
+    setSelectedRowId(rowId)
+
+    // console.log("multiRowUpdate: ", multiRowUpdate)
+    // console.log("rowId: ", rowId)
+    // console.log("generatedMetadata: ", generatedMetadata)
+
+    if (generatedMetadata === undefined) {
+      refetch()
+    } else {
+      const receiveQueryResults = await generateSelectedMetadata(generatedMeta, engine)
+      console.log("receiveQueryResults: ", receiveQueryResults)
+      const { dsUid, deUid, piUid, coFilters: coRowFilters } = dePiMaps[rowId]
+      const deCode = getCodeFromId(metadata.dataElements.dataElements, deUid)
+      if (deCode === undefined) {
+        mutate({ id: deUid, code: deUid })
+      }
+      metadata.dataElements.dataElements = updateDes(metadata.dataElements.dataElements, deUid)
+      const coFilters = { ...coMaps, ...coRowFilters }
+      setRowsLoading({ ...rowsLoading, [rowId]: true })
+      try {
+        const results = generateDataMapping(
+          rowId,
+          dsUid,
+          { id: deUid, code: deUid },
+          piUid,
+          coFilters,
+          metadata,
+          generatedMetadata,
+          existingConfig?.generateIndicators
+        )
+        if (results === null) {
+          show({
+            msg: 'No updates detected',
+            type: 'success',
+          })
+          setRowsLoading({ ...rowsLoading, [rowId]: false })
+          if (multiRowUpdate && rowIds.length) {
+            generateMapping(rowIds)
+          }
+          return
         }
-        return
-      }
-      if (results.needsDelete) {
-        engine.mutate(deleteMutation, {
-          variables: { data: results.deleteMetadata },
-          onError: () => {
-            show({
-              msg: `Error deleting previous mapping metadata, please remove references to this metadata in the system before regenerating`,
-              type: 'critical',
-            })
-            setRowsLoading({ ...rowsLoading, [rowId]: false })
-            if (multiRowUpdate && rowIds.length) {
-              generateMapping(rowIds)
-            }
-          },
-          onComplete: () => {
-            engine.mutate(createUpdateMutation, {
-              variables: { data: results.createUpdateMetadata },
-              onError: () => {
-                show({
-                  msg: 'Error importing new mapping metadata.',
-                  type: 'critical',
-                })
-                setRowsLoading({ ...rowsLoading, [rowId]: false })
-                if (multiRowUpdate && rowIds.length) {
-                  generateMapping(rowIds)
-                }
-              },
-              onComplete: () => {
-                refetch()
-                setImportResults({ success: true, message: 'Imported successfully' })
-                generateMappingComplete(rowId)
-                if (multiRowUpdate && rowIds.length) {
-                  generateMapping(rowIds)
-                }
-              },
-            })
-          },
-        })
-      } else {
-        engine.mutate(createUpdateMutation, {
-          variables: { data: results.createUpdateMetadata },
-          onError: () => {
-            show({
-              msg: 'Error importing new mapping metadata.',
-              type: 'critical',
-            })
-            setRowsLoading({ ...rowsLoading, [rowId]: false })
-            if (multiRowUpdate && rowIds.length) {
-              generateMapping(rowIds)
-            }
-          },
-          onComplete: () => {
-            refetch()
-            setImportResults({ success: true, message: 'Imported successfully' })
-            generateMappingComplete(rowId)
-            if (multiRowUpdate && rowIds.length) {
-              generateMapping(rowIds)
-            }
-          },
-        })
-      }
-    } catch (e) {
-      if (e instanceof MappingGenerationError) {
-        setImportResults({ success: false, message: e.message })
-        generateMappingComplete(rowId)
-        if (multiRowUpdate && rowIds.length) {
-          generateMapping(rowIds)
+        if (results.needsDelete) {
+          engine.mutate(deleteMutation, {
+            variables: { data: results.deleteMetadata },
+            onError: () => {
+              show({
+                msg: `Error deleting previous mapping metadata, please remove references to this metadata in the system before regenerating`,
+                type: 'critical',
+              })
+              setRowsLoading({ ...rowsLoading, [rowId]: false })
+              if (multiRowUpdate && rowIds.length) {
+                generateMapping(rowIds)
+              }
+            },
+            onComplete: () => {
+              engine.mutate(createUpdateMutation, {
+                variables: { data: results.createUpdateMetadata },
+                onError: () => {
+                  show({
+                    msg: 'Error importing new mapping metadata.',
+                    type: 'critical',
+                  })
+                  setRowsLoading({ ...rowsLoading, [rowId]: false })
+                  if (multiRowUpdate && rowIds.length) {
+                    generateMapping(rowIds)
+                  }
+                },
+                onComplete: () => {
+                  refetch()
+                  setImportResults({ success: true, message: 'Imported successfully' })
+                  generateMappingComplete(rowId)
+                  if (multiRowUpdate && rowIds.length) {
+                    generateMapping(rowIds)
+                  }
+                },
+              })
+            },
+          })
+        } else {
+          engine.mutate(createUpdateMutation, {
+            variables: { data: results.createUpdateMetadata },
+            onError: () => {
+              show({
+                msg: 'Error importing new mapping metadata.',
+                type: 'critical',
+              })
+              setRowsLoading({ ...rowsLoading, [rowId]: false })
+              if (multiRowUpdate && rowIds.length) {
+                generateMapping(rowIds)
+              }
+            },
+            onComplete: () => {
+              refetch()
+              setImportResults({ success: true, message: 'Imported successfully' })
+              generateMappingComplete(rowId)
+              if (multiRowUpdate && rowIds.length) {
+                generateMapping(rowIds)
+              }
+            },
+          })
         }
-      } else {
-        throw e
+      } catch (e) {
+        if (e instanceof MappingGenerationError) {
+          setImportResults({ success: false, message: e.message })
+          generateMappingComplete(rowId)
+          if (multiRowUpdate && rowIds.length) {
+            generateMapping(rowIds)
+          }
+        } else {
+          throw e
+        }
       }
+      setSelectedRowId('')
     }
   }
 
+  console.log(selectedRowId)
   const handleSelectRow = (rowId) => {
     setRowsSelected({ ...rowsSelected, [rowId]: !rowsSelected[rowId] })
   }
@@ -380,6 +420,7 @@ const Page = ({ metadata, existingConfig }) => {
       rowId: rowId,
       newRow: true,
     }
+
     setRowsLoading({ ...rowsLoading, [rowId]: false })
     setRowsSelected({ ...rowsSelected, [rowId]: false })
     setDePiMaps({ ...dePiMaps, [rowId]: newRow })
