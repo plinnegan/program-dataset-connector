@@ -75,7 +75,7 @@ export async function* getPaged(engine, query, params) {
   }
 }
 
-async function getTotalPages(engine, query, params, setProgress = () => {}) {
+async function getTotalPages(engine, query, params, setProgress = () => { }) {
   let totalPages = 0
   const totalEndpoints = Object.keys(query).length
   let currentQuery = 1
@@ -99,6 +99,8 @@ export default function useDataQueryPaged(engine, query, params) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
   const [progress, setProgress] = useState(0)
+
+  // console.log("query: ", query)
 
   const refetch = async (currentParams = {}) => {
     setError(undefined)
