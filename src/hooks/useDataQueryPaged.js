@@ -24,7 +24,6 @@ function pageNQuery(query, pageNumber) {
     } else {
       pageParams = { ...params, page: pageNumber }
     }
-    console.log('pageParams: ', pageParams)
     result[queryKey] = { ...query[queryKey], params: pageParams }
   }
   return result

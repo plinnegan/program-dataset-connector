@@ -64,7 +64,7 @@ const Row = ({
           </ButtonStrip>
         </TableCell>
         <TableCell className={classes.loaderTd}>
-          <div className={classes.loaderDiv}>{loading && <CircularLoader small />}</div>
+          <div>{loading && <CircularLoader small />}</div>
         </TableCell>
       </TableRow>
     </>

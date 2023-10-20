@@ -184,6 +184,7 @@ const Page = ({ metadata, existingConfig }) => {
   }
 
   const onDelete = async (rowId) => {
+    setRowsLoading({ ...rowsLoading, [rowId]: true })
     const existingGeneratedMetadata = await fetchExistingGeneratedMetadata(rowId)
     const generatedPis = existingGeneratedMetadata.generatedPis.programIndicators
     const generatedPiGroups = existingGeneratedMetadata.generatedPiGroups.programIndicatorGroups
@@ -199,7 +200,6 @@ const Page = ({ metadata, existingConfig }) => {
     }
 
     const newDePiMaps = removeKey(dePiMaps, rowId)
-    setRowsLoading(removeKey(rowsLoading, rowId))
     setRowsSelected(removeKey(rowsSelected, rowId))
     try {
       const res = await engine.mutate(deleteMutation, {
@@ -217,6 +217,8 @@ const Page = ({ metadata, existingConfig }) => {
       }
     } catch (err) {
       showDeleteError()
+    } finally {
+      setRowsLoading(removeKey(rowsLoading, rowId))
     }
   }
 
@@ -254,7 +256,6 @@ const Page = ({ metadata, existingConfig }) => {
     const { dsUid, deUid, piUid, coFilters: coRowFilters } = dePiMaps[rowId]
     deCodeCheck(metadata, deUid)
     const coFilters = { ...coMaps, ...coRowFilters }
-    setRowsLoading({ ...rowsLoading, [rowId]: true })
     try {
       const results = generateDataMapping(
         rowId,
@@ -304,6 +305,7 @@ const Page = ({ metadata, existingConfig }) => {
   const generateMapping = async (rowIds) => {
     const rows = Array.isArray(rowIds) ? rowIds : [rowIds]
     for await (const rowId of rows) {
+      setRowsLoading({ ...rowsLoading, [rowId]: true })
       const existingGeneratedMetadata = await fetchExistingGeneratedMetadata(rowId)
       await processRow(rowId, rowIds, existingGeneratedMetadata)
     }
