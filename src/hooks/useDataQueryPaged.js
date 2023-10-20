@@ -21,7 +21,10 @@ function pageNQuery(query, pageNumber) {
     let pageParams = params
     if (typeof params === 'function') {
       pageParams = (pageParams) => ({ ...params(pageParams), page: pageNumber })
+    } else {
+      pageParams = { ...params, page: pageNumber }
     }
+    console.log('pageParams: ', pageParams)
     result[queryKey] = { ...query[queryKey], params: pageParams }
   }
   return result

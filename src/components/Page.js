@@ -187,19 +187,15 @@ const Page = ({ metadata, existingConfig }) => {
     const existingGeneratedMetadata = await fetchExistingGeneratedMetadata(rowId)
     const generatedPis = existingGeneratedMetadata.generatedPis.programIndicators
     const generatedPiGroups = existingGeneratedMetadata.generatedPiGroups.programIndicatorGroups
-    const delPis = generatedPis.filter((pi) => pi.description.includes(rowId))
-    const delPiGroups = generatedPiGroups.filter((piGroup) => piGroup.name.includes(rowId))
     const delData = {
-      programIndicators: delPis,
-      programIndicatorGroups: delPiGroups,
+      programIndicators: generatedPis,
+      programIndicatorGroups: generatedPiGroups,
     }
     if (generateIndicators) {
       const generatedInds = existingGeneratedMetadata.generatedInds.indicators
       const generatedIndGroups = existingGeneratedMetadata.generatedIndGroups.indicatorGroups
-      const delInds = generatedInds.filter((ind) => ind.description.includes(rowId))
-      const delIndGroups = generatedIndGroups.filter((indGroup) => indGroup.name.includes(rowId))
-      delData.indicators = delInds
-      delData.indicatorGroups = delIndGroups
+      delData.indicators = generatedInds
+      delData.indicatorGroups = generatedIndGroups
     }
 
     const newDePiMaps = removeKey(dePiMaps, rowId)
@@ -207,9 +203,7 @@ const Page = ({ metadata, existingConfig }) => {
     setRowsSelected(removeKey(rowsSelected, rowId))
     try {
       const res = await engine.mutate(deleteMutation, {
-        variables: {
-          data: delData,
-        },
+        variables: { data: delData },
         onError: showDeleteError,
       })
       if (res.status === 'OK') {
@@ -217,11 +211,7 @@ const Page = ({ metadata, existingConfig }) => {
           variables: { data: { ...existingConfig, dePiMaps: newDePiMaps, coMaps: coMaps } },
           onError: showDeleteError,
         })
-        if (dsRes.status === 'OK') {
-          setDePiMaps(newDePiMaps)
-        } else {
-          showDeleteError()
-        }
+        dsRes.status === 'OK' ? setDePiMaps(newDePiMaps) : showDeleteError()
       } else {
         showDeleteError()
       }
