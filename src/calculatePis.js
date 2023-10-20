@@ -56,8 +56,8 @@ function getFilters(metaItem, coMaps, config) {
   if (!rawCocs || rawCocs.length === 0) {
     throw new MappingGenerationError(
       `Data set or data element ${metaItem?.name} does not appear to have any category option combos associated ` +
-        `with the assigned category combo, please generate category ` +
-        'option combos in the admin app before attempting to generate the mapping again'
+      `with the assigned category combo, please generate category ` +
+      'option combos in the admin app before attempting to generate the mapping again'
     )
   }
   const cocs = rawCocs.map((coc) => orderCos(coc))
@@ -72,8 +72,8 @@ function getFilters(metaItem, coMaps, config) {
       } else if (!(co.id in coMaps)) {
         throw new MappingGenerationError(
           'Found a category option combo which cannot be constructed from the assigned ' +
-            'categories, this typically means the COCs on the data element or data set need ' +
-            'updating to align with the categories (CC override changes can also cause this)'
+          'categories, this typically means the COCs on the data element or data set need ' +
+          'updating to align with the categories (CC override changes can also cause this)'
         )
       } else if (coMaps[co.id].filter === '') {
         if (emptyCategoryCoIds.includes(co.id)) {

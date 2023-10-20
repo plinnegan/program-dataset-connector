@@ -1,6 +1,9 @@
 export const config = {
   dataStoreName: 'event-aggregate-mapper',
   dataStoreKey: 'metadata',
+  api: {
+    fetchPageSize: 50,
+  },
   indCustomAttr: {
     id: 'b8KbU93phhz',
     name: 'Data element for aggregate data export',
@@ -34,6 +37,15 @@ export const config = {
       ],
     },
   },
+}
+
+export const messages = {
+  noUpdates: { msg: 'No updates detected', type: 'success' },
+  deleteError: {
+    msg: 'Error deleting previous mapping metadata, please remove references to this metadata in the system before regenerating',
+    type: 'critical',
+  },
+  importError: { msg: 'Error importing new mapping metadata.', type: 'critical' },
 }
 
 export const ADDED_MISSING_CODE_MSG =

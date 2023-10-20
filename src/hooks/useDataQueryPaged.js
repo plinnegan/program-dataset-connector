@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { config } from '../consts'
+import { getSingleKey } from '../utils'
 
 const responseKeyMap = {
   'tracker/events': 'instances',
@@ -9,7 +11,7 @@ function endpointNotPaged(endpoint) {
   return noPagingSupport.some((noPagingSupport) => endpoint.includes(noPagingSupport))
 }
 
-function getPageSize(query, queryKey, defaultSize = 50) {
+function getPageSize(query, queryKey, defaultSize = config.api.fetchPageSize) {
   const queryPageSize = query[queryKey]?.params?.pageSize
   return queryPageSize || defaultSize
 }
@@ -18,7 +20,13 @@ function pageNQuery(query, pageNumber) {
   const result = {}
   for (const queryKey in query) {
     const params = query[queryKey]?.params
-    result[queryKey] = { ...query[queryKey], params: { ...params, page: pageNumber } }
+    let pageParams = params
+    if (typeof params === 'function') {
+      pageParams = (pageParams) => ({ ...params(pageParams), page: pageNumber })
+    } else {
+      pageParams = { ...params, page: pageNumber }
+    }
+    result[queryKey] = { ...query[queryKey], params: pageParams }
   }
   return result
 }
@@ -49,11 +57,7 @@ async function getItemCount(engine, query, params) {
  * @return Generator which yields the paged results
  */
 export async function* getPaged(engine, query, params) {
-  const queryKeys = Object.keys(query)
-  if (queryKeys.length !== 1) {
-    throw 'Only single endpoint queries are supported currently'
-  }
-  const queryKey = queryKeys[0]
+  const queryKey = getSingleKey(query)
   const pageSize = getPageSize(query, queryKey)
   const endpoint = query[queryKey].resource
   const dataKey = responseKeyMap[endpoint] || endpoint
@@ -94,13 +98,15 @@ async function getTotalPages(engine, query, params, setProgress = () => {}) {
   return totalPages
 }
 
-export default function useDataQueryPaged(engine, query, params) {
+export default function useDataQueryPaged(engine, query, initParams) {
   const [data, setData] = useState(undefined)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  const refetch = async (currentParams = {}) => {
+  const refetch = async (currentParams = {}, callbacks) => {
+    const params = { ...initParams, ...currentParams }
+    const { onComplete, onError } = callbacks || {}
     setError(undefined)
     setLoading(true)
     const partialData = {}
@@ -110,23 +116,25 @@ export default function useDataQueryPaged(engine, query, params) {
       for (const queryKey in query) {
         const resource = query[queryKey].resource
         partialData[queryKey] = { [resource]: [] }
-        for await (const data of getPaged(engine, { [queryKey]: query[queryKey] }, currentParams)) {
+        for await (const data of getPaged(engine, { [queryKey]: query[queryKey] }, params)) {
           pagesProcessed++
           setProgress(0.1 + 0.9 * (pagesProcessed / totalPages))
           partialData[queryKey][resource].push(...data)
         }
       }
       setData(partialData)
+      onComplete && onComplete(partialData)
     } catch (err) {
       setError(err)
+      onError && onError(err)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    if (!params?.lazy) {
-      refetch(params)
+    if (!initParams?.lazy) {
+      refetch(initParams)
     }
   }, [])
 
