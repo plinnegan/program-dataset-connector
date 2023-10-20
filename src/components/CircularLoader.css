@@ -31,7 +31,6 @@
   transform: translateX(-50%) translateY(-50%);
   background: #fff;
   border-radius: 50%;
-  box-shadow: inset rgba(34, 36, 38, 0.15) 0px 0px 3px 2px;
 }
 
 .circular-progress-value {
