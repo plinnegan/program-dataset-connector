@@ -1,3 +1,5 @@
+import { config } from './consts'
+
 /**
  *
  * @param {object} metadata JSON object for either a data element or data set
@@ -290,14 +292,14 @@ async function* mutateSinglePaged(engine, mutation, data, options) {
   const dataType = getSingleKey(data)
   const { variables, onComplete, onError } = options
   const itemCount = data[dataType].length
-  const pageSize = options?.pageSize || 200
+  const pageSize = options?.pageSize || config.api.fetchPageSize
   const pageCount = Math.ceil(itemCount / pageSize)
   const errors = []
   const responses = []
   for (let i = 0; i < pageCount; i++) {
     const pageData = data[dataType].slice(i * pageSize, (i + 1) * pageSize)
     const res = await engine.mutate(mutation, {
-      variables: { ...variables, data: pageData },
+      variables: { ...variables, data: { [dataType]: pageData } },
       onError: (err) => errors.push(err),
       onComplete: (res) => responses.push(res),
     })
@@ -322,7 +324,7 @@ function getTotalPages(data, pageSize) {
 }
 
 export async function* mutatePaged(engine, mutation, data, options) {
-  const pageSize = options?.pageSize || 200
+  const pageSize = options?.pageSize || config.api.fetchPageSize
   let currentProgress = 0
   const totalPages = getTotalPages(data, pageSize)
   for (const endpoint in data) {

@@ -1,9 +1,10 @@
-import { Button, ButtonStrip, Checkbox, TableRow, TableCell, CircularLoader } from '@dhis2/ui'
+import { Button, ButtonStrip, Checkbox, TableRow, TableCell } from '@dhis2/ui'
 import PropTypes from 'prop-types'
 import React, { useState } from 'react'
 import classes from '../App.module.css'
 import ConfirmDelete from './ConfirmDelete'
 import ConfirmGenerationModal from './ConfirmGenerationModal'
+import CircularLoader from './CircularLoader'
 
 const Row = ({
   dsName,
@@ -14,6 +15,7 @@ const Row = ({
   generateMapping,
   handleDelete,
   loading,
+  loadProgress,
   rowSelected,
   selectRow,
   getSummaryInfo,
@@ -64,7 +66,7 @@ const Row = ({
           </ButtonStrip>
         </TableCell>
         <TableCell className={classes.loaderTd}>
-          <div>{loading && <CircularLoader small />}</div>
+          <div>{loading && <CircularLoader progress={loadProgress} />}</div>
         </TableCell>
       </TableRow>
     </>
@@ -80,6 +82,7 @@ Row.propTypes = {
   generateMapping: PropTypes.func.isRequired,
   handleDelete: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
+  loadProgress: PropTypes.number,
   rowSelected: PropTypes.bool.isRequired,
   selectRow: PropTypes.func,
   getSummaryInfo: PropTypes.func,

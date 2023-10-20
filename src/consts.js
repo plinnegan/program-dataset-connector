@@ -1,6 +1,9 @@
 export const config = {
   dataStoreName: 'event-aggregate-mapper',
   dataStoreKey: 'metadata',
+  api: {
+    fetchPageSize: 50,
+  },
   indCustomAttr: {
     id: 'b8KbU93phhz',
     name: 'Data element for aggregate data export',

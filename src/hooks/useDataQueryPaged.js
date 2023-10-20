@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { config } from '../consts'
 import { getSingleKey } from '../utils'
 
 const responseKeyMap = {
@@ -10,7 +11,7 @@ function endpointNotPaged(endpoint) {
   return noPagingSupport.some((noPagingSupport) => endpoint.includes(noPagingSupport))
 }
 
-function getPageSize(query, queryKey, defaultSize = 50) {
+function getPageSize(query, queryKey, defaultSize = config.api.fetchPageSize) {
   const queryPageSize = query[queryKey]?.params?.pageSize
   return queryPageSize || defaultSize
 }

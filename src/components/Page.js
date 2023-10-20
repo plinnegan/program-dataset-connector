@@ -85,6 +85,7 @@ const Page = ({ metadata, existingConfig }) => {
   const [orderedRowIds, setOrderedRowIds] = useState(Object.keys(dePiMaps))
   const [filteredRowIds, setFilteredRowIds] = useState(orderedRowIds)
   const [filterText, setFilterText] = useState('')
+  const [loadProgress, setLoadProgress] = useState(0)
   const [rowsLoading, setRowsLoading] = useState(
     Object.keys(dePiMaps).reduce((acc, rowId) => ({ ...acc, [rowId]: false }), {})
   )
@@ -102,8 +103,7 @@ const Page = ({ metadata, existingConfig }) => {
   const [selectedRowData, setSelectedRowData] = useState({})
   const generatedMetaQuery = getGeneratedMetaQuery(generateIndicators)
   const engine = useDataEngine()
-  const { refetch } = useDataQueryPaged(engine, generatedMetaQuery, {
-    pageSize: 50,
+  const { refetch, progress: fetchProgress } = useDataQueryPaged(engine, generatedMetaQuery, {
     lazy: true,
   })
 
@@ -131,6 +131,13 @@ const Page = ({ metadata, existingConfig }) => {
   useEffect(() => {
     setFilteredRowIds(filterRowsByText(dePiMaps, orderedRowIds, filterText))
   }, [orderedRowIds])
+
+  useEffect(() => {
+    if (fetchProgress !== 0) {
+      console.log('Setting progress: ', fetchProgress)
+      setLoadProgress(0.5 * fetchProgress)
+    }
+  }, [fetchProgress])
 
   const handleRowClick = (rowId) => {
     setSelectedRowData(dePiMaps[rowId])
@@ -203,7 +210,7 @@ const Page = ({ metadata, existingConfig }) => {
     const newDePiMaps = removeKey(dePiMaps, rowId)
     setRowsSelected(removeKey(rowsSelected, rowId))
     try {
-      for await (const [res, progress] of mutatePaged(engine, deleteMutation, delData, {
+      for await (const [, progress] of mutatePaged(engine, deleteMutation, delData, {
         onError: showDeleteError,
         onComplete: async () => {
           const dsRes = await engine.mutate(dataStoreMutation, {
@@ -213,18 +220,19 @@ const Page = ({ metadata, existingConfig }) => {
           dsRes.status === 'OK' ? setDePiMaps(newDePiMaps) : showDeleteError()
         },
       })) {
-        console.log(res)
-        console.log(progress)
+        setLoadProgress(0.5 + 0.5 * progress)
       }
     } catch (err) {
       showDeleteError()
     } finally {
       setRowsLoading(removeKey(rowsLoading, rowId))
+      setLoadProgress(0)
     }
   }
 
   const generateMappingComplete = (rowId) => {
     setRowsLoading({ ...rowsLoading, [rowId]: false })
+    setLoadProgress(0)
     setShowImportStatus(true)
   }
 
@@ -274,7 +282,7 @@ const Page = ({ metadata, existingConfig }) => {
       }
       let deleteError = false
       if (results.needsDelete) {
-        for await (const [res, progress] of mutatePaged(
+        for await (const [, progress] of mutatePaged(
           engine,
           deleteMutation,
           results.deleteMetadata,
@@ -285,14 +293,13 @@ const Page = ({ metadata, existingConfig }) => {
             },
           }
         )) {
-          console.log(res)
-          console.log(progress)
+          setLoadProgress(0.5 + 0.25 * progress)
         }
       }
       if (deleteError) {
         return
       }
-      for await (const [res, progress] of mutatePaged(
+      for await (const [, progress] of mutatePaged(
         engine,
         createUpdateMutation,
         results.createUpdateMetadata,
@@ -304,8 +311,11 @@ const Page = ({ metadata, existingConfig }) => {
           },
         }
       )) {
-        console.log(res)
-        console.log(progress)
+        if (results.needsDelete) {
+          setLoadProgress(0.55 + 0.45 * progress)
+        } else {
+          setLoadProgress(0.5 + 0.5 * progress)
+        }
       }
     } catch (e) {
       if (e instanceof MappingGenerationError) {
@@ -353,6 +363,7 @@ const Page = ({ metadata, existingConfig }) => {
     }
 
     setRowsLoading({ ...rowsLoading, [rowId]: false })
+    setLoadProgress(0)
     setRowsSelected({ ...rowsSelected, [rowId]: false })
     setDePiMaps({ ...dePiMaps, [rowId]: newRow })
   }
@@ -445,6 +456,7 @@ const Page = ({ metadata, existingConfig }) => {
                     generateMapping={generateMapping}
                     handleDelete={onDelete}
                     loading={rowsLoading[key]}
+                    loadProgress={loadProgress}
                     rowSelected={rowsSelected[key]}
                     selectRow={handleSelectRow}
                     getSummaryInfo={getSummaryInfo}
