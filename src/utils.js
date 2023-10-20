@@ -274,3 +274,63 @@ export function sameKeys(objOne, objTwo) {
   const objTwoKeys = Object.keys(objTwo).sort()
   return objOneKeys.join() === objTwoKeys.join()
 }
+
+export function getSingleKey(query) {
+  const queryKeys = Object.keys(query)
+  if (queryKeys.length !== 1) {
+    throw 'Only single endpoint queries are supported currently'
+  }
+  return queryKeys[0]
+}
+
+async function* mutateSinglePaged(engine, mutation, data, options) {
+  if (mutation.type !== 'create') {
+    throw new Error('Only create mutations are currently supported')
+  }
+  const dataType = getSingleKey(data)
+  const { variables, onComplete, onError } = options
+  const itemCount = data[dataType].length
+  const pageSize = options?.pageSize || 200
+  const pageCount = Math.ceil(itemCount / pageSize)
+  const errors = []
+  const responses = []
+  for (let i = 0; i < pageCount; i++) {
+    const pageData = data[dataType].slice(i * pageSize, (i + 1) * pageSize)
+    const res = await engine.mutate(mutation, {
+      variables: { ...variables, data: pageData },
+      onError: (err) => errors.push(err),
+      onComplete: (res) => responses.push(res),
+    })
+    yield [res, (i + 1) / pageCount]
+  }
+  if (errors.length > 0) {
+    onError(errors)
+  } else {
+    onComplete(responses)
+  }
+  return
+}
+
+function getTotalPages(data, pageSize) {
+  let totalPages = 0
+  for (const endpoint in data) {
+    const endpointItemCount = data[endpoint].length
+    const endpointPages = Math.ceil(endpointItemCount / pageSize)
+    totalPages += endpointPages
+  }
+  return totalPages
+}
+
+export async function* mutatePaged(engine, mutation, data, options) {
+  const pageSize = options?.pageSize || 200
+  let currentProgress = 0
+  const totalPages = getTotalPages(data, pageSize)
+  for (const endpoint in data) {
+    const thisData = { [endpoint]: data[endpoint] }
+    for await (const [res] of mutateSinglePaged(engine, mutation, thisData, options)) {
+      currentProgress += 1 / totalPages
+      yield [res, currentProgress]
+    }
+  }
+  return
+}

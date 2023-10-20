@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getSingleKey } from '../utils'
 
 const responseKeyMap = {
   'tracker/events': 'instances',
@@ -55,11 +56,7 @@ async function getItemCount(engine, query, params) {
  * @return Generator which yields the paged results
  */
 export async function* getPaged(engine, query, params) {
-  const queryKeys = Object.keys(query)
-  if (queryKeys.length !== 1) {
-    throw 'Only single endpoint queries are supported currently'
-  }
-  const queryKey = queryKeys[0]
+  const queryKey = getSingleKey(query)
   const pageSize = getPageSize(query, queryKey)
   const endpoint = query[queryKey].resource
   const dataKey = responseKeyMap[endpoint] || endpoint

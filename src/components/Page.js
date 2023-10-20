@@ -31,6 +31,7 @@ import {
   filterRowsByText,
   updateDes,
   getPiCount,
+  mutatePaged,
 } from '../utils'
 import ActionButtons from './ActionButtons'
 import ImportSummary from './ImportSummary'
@@ -202,18 +203,18 @@ const Page = ({ metadata, existingConfig }) => {
     const newDePiMaps = removeKey(dePiMaps, rowId)
     setRowsSelected(removeKey(rowsSelected, rowId))
     try {
-      const res = await engine.mutate(deleteMutation, {
-        variables: { data: delData },
+      for await (const [res, progress] of mutatePaged(engine, deleteMutation, delData, {
         onError: showDeleteError,
-      })
-      if (res.status === 'OK') {
-        const dsRes = await engine.mutate(dataStoreMutation, {
-          variables: { data: { ...existingConfig, dePiMaps: newDePiMaps, coMaps: coMaps } },
-          onError: showDeleteError,
-        })
-        dsRes.status === 'OK' ? setDePiMaps(newDePiMaps) : showDeleteError()
-      } else {
-        showDeleteError()
+        onComplete: async () => {
+          const dsRes = await engine.mutate(dataStoreMutation, {
+            variables: { data: { ...existingConfig, dePiMaps: newDePiMaps, coMaps: coMaps } },
+            onError: showDeleteError,
+          })
+          dsRes.status === 'OK' ? setDePiMaps(newDePiMaps) : showDeleteError()
+        },
+      })) {
+        console.log(res)
+        console.log(progress)
       }
     } catch (err) {
       showDeleteError()
@@ -273,25 +274,39 @@ const Page = ({ metadata, existingConfig }) => {
       }
       let deleteError = false
       if (results.needsDelete) {
-        engine.mutate(deleteMutation, {
-          variables: { data: results.deleteMetadata },
-          onError: () => {
-            deleteError = true
-            show(messages.deleteError)
-          },
-        })
+        for await (const [res, progress] of mutatePaged(
+          engine,
+          deleteMutation,
+          results.deleteMetadata,
+          {
+            onError: () => {
+              deleteError = true
+              show(messages.deleteError)
+            },
+          }
+        )) {
+          console.log(res)
+          console.log(progress)
+        }
       }
       if (deleteError) {
         return
       }
-      engine.mutate(createUpdateMutation, {
-        variables: { data: results.createUpdateMetadata },
-        onError: () => show(messages.importError),
-        onComplete: () => {
-          setImportResults({ success: true, message: 'Imported successfully' })
-          generateMappingComplete(rowId)
-        },
-      })
+      for await (const [res, progress] of mutatePaged(
+        engine,
+        createUpdateMutation,
+        results.createUpdateMetadata,
+        {
+          onError: () => show(messages.importError),
+          onComplete: () => {
+            setImportResults({ success: true, message: 'Imported successfully' })
+            generateMappingComplete(rowId)
+          },
+        }
+      )) {
+        console.log(res)
+        console.log(progress)
+      }
     } catch (e) {
       if (e instanceof MappingGenerationError) {
         setImportResults({ success: false, message: e.message })
