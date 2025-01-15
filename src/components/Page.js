@@ -134,7 +134,6 @@ const Page = ({ metadata, existingConfig }) => {
 
   useEffect(() => {
     if (fetchProgress !== 0) {
-      console.log('Setting progress: ', fetchProgress)
       setLoadProgress(0.5 * fetchProgress)
     }
   }, [fetchProgress])
@@ -274,7 +273,7 @@ const Page = ({ metadata, existingConfig }) => {
         coFilters,
         metadata,
         existingGeneratedMetadata,
-        generateIndicators
+        existingConfig
       )
       if (results === null) {
         show(messages.noUpdates)
