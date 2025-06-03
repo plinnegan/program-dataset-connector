@@ -277,6 +277,8 @@ const Page = ({ metadata, existingConfig }) => {
       )
       if (results === null) {
         show(messages.noUpdates)
+        setRowsLoading({ ...rowsLoading, [rowId]: false })
+        setLoadProgress(0)
         return
       }
       let deleteError = false

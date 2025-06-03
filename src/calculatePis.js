@@ -35,7 +35,7 @@ export function getEmptyCategoryCoIds(rawCc, coMaps) {
       }
     }
     if (allBlank) {
-      console.log(`All categories options are blank for category ${cat.name}`)
+      console.log(`All categories options are blank for category ${cat.id}`)
       result.push(...cat.categoryOptions.map(({ id }) => id))
     }
   }
